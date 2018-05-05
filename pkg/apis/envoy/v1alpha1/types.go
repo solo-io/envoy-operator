@@ -25,6 +25,34 @@ type Envoy struct {
 
 type EnvoySpec struct {
 	// Fill me
+
+	ADSServer string
+
+	Image string
+
+	// ca, and potentiallyu client cert
+	ClientTLS string
+
+	AdminPort int32
+
+	ClusterIdTemplate string
+
+	NodeIdTemplate string
+
+	StatsdSink string
+
+	OpenTracing string
+
+	Deployment EnvoyDeploymentSpec
+	Injection  InjectionSpec
+}
+
+type EnvoyDeploymentSpec struct {
+	Replicas uint32
+}
+
+type InjectionSpec struct {
+	// 	Namespace string
 }
 
 type EnvoyStatus struct {

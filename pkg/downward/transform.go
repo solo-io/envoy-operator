@@ -5,7 +5,7 @@ import (
 	"os"
 
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
-	"github.com/golang/protobuf/jsonpb"
+	"github.com/gogo/protobuf/jsonpb"
 )
 
 func TransformFiles(in, out string) error {

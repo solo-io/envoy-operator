@@ -1,10 +1,10 @@
 package v1alpha1
 
-// go:generate operator-sdk generate k8s
-
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const defaultContainerImage = "soloio/envoy:0.1"
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -24,31 +24,30 @@ type Envoy struct {
 }
 
 type EnvoySpec struct {
-	// Fill me
+	ADSServer string `json:"adsServer"`
+	ADSPort   int32  `json:"adsPort"`
 
-	ADSServer string
+	Image string `json:"image"`
 
-	Image string
+	// ca, and potentially client cert
+	// ClientTLS string
 
-	// ca, and potentiallyu client cert
-	ClientTLS string
+	AdminPort int32 `json:"adminPort"`
 
-	AdminPort int32
+	ClusterIdTemplate string `json:"clusterIdTemplate"`
 
-	ClusterIdTemplate string
+	NodeIdTemplate string `json:"nodeIdTemplate"`
 
-	NodeIdTemplate string
+	// StatsdSink string
 
-	StatsdSink string
+	// OpenTracing string
 
-	OpenTracing string
-
-	Deployment EnvoyDeploymentSpec
-	Injection  InjectionSpec
+	Deployment *EnvoyDeploymentSpec `json:"deployment"`
+	Injection  *InjectionSpec       `json:"ingress"`
 }
 
 type EnvoyDeploymentSpec struct {
-	Replicas uint32
+	Replicas uint32 `json:"replicas"`
 }
 
 type InjectionSpec struct {
@@ -57,4 +56,27 @@ type InjectionSpec struct {
 
 type EnvoyStatus struct {
 	// Fill me
+}
+
+// SetDefaults sets the default vaules for the vault spec and returns true if the spec was changed
+func (e *Envoy) SetDefaults() bool {
+	changed := false
+	es := &e.Spec
+
+	if es.Image == "" {
+		es.Image = defaultContainerImage
+		changed = true
+	}
+
+	if es.Injection == nil {
+		if es.Deployment == nil {
+			es.Deployment = &EnvoyDeploymentSpec{}
+			changed = true
+		}
+		if es.Deployment.Replicas == 0 {
+			es.Deployment.Replicas = 1
+			changed = true
+		}
+	}
+	return changed
 }

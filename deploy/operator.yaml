@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: envoy-operator
+  template:
+    metadata:
+      labels:
+        name: envoy-operator
+    spec:
+      containers:
+        - name: envoy-operator
+          image: soloio/envoy-operator:v0.0.1
+          command:
+          - envoy-operator
+          imagePullPolicy: Always

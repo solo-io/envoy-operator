@@ -17,6 +17,11 @@ func Reconcile(e *api.Envoy) (err error) {
 		return action.Update(e)
 	}
 
+	err = prepareEnvoyConfig(e)
+	if err != nil {
+		return err
+	}
+
 	err = deployEnvoy(e)
 	if err != nil {
 		return err

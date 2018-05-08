@@ -2,3 +2,8 @@ apiVersion: "envoy.solo.io/v1alpha1"
 kind: "Envoy"
 metadata:
   name: "myingress"
+spec:
+  adsServer: test.blah.com
+  adsPort: 1234
+  clusterIdTemplate: yuval
+  nodeIdTemplate: "{{.PodName}}-yuval"

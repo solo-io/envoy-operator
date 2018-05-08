@@ -15,7 +15,7 @@ func TransformFiles(in, out string) error {
 	}
 	defer inreader.Close()
 
-	outwriter, err := os.Create(in)
+	outwriter, err := os.Create(out)
 	if err != nil {
 		return err
 	}

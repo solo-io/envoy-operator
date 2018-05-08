@@ -1,0 +1,3 @@
+apiVersion: envoy.solo.io/v1alpha1
+kind: Envoy
+projectName: envoy-operator

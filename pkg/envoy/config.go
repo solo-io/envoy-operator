@@ -39,7 +39,7 @@ func controlPlaneCluster(e *api.Envoy) envoy_api_v2.Cluster {
 	return ret
 }
 
-func prepareenvoyConfig(e *api.Envoy) error {
+func prepareEnvoyConfig(e *api.Envoy) error {
 	var cfgData string
 	cm := &v1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
@@ -48,6 +48,7 @@ func prepareenvoyConfig(e *api.Envoy) error {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: e.Namespace,
+			Name:      configMapNameForEnvoy(e),
 		},
 	}
 
@@ -106,6 +107,7 @@ func prepareenvoyConfig(e *api.Envoy) error {
 	cm.Data = map[string]string{filepath.Base(envoyConfigFilePath): cfgData}
 	addOwnerRefToObject(cm, asOwner(&e.ObjectMeta))
 
+	// TODO: check if config map changed?
 	if err := action.Create(cm); err != nil && !apierrors.IsAlreadyExists(err) {
 		return fmt.Errorf("prepare vault config error: create new configmap (%s) failed: %v", cm.Name, err)
 	}

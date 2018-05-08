@@ -26,7 +26,8 @@ const (
 	envoyConfigTmpVolName = "envoy-tmp-config"
 	envoyConfigTmpPath    = "/etc/envoy/"
 
-	envoyConfigFilePath = "/etc/envoy/envoy.json"
+	envoyConfigFilePath       = "/etc/envoy/envoy.json"
+	envoySourceConfigFilePath = "/etc/tmp-envoy/envoy.json"
 )
 
 func deployEnvoy(e *api.Envoy) error {
@@ -187,6 +188,14 @@ func envoyContainer(e *api.Envoy) v1.Container {
 		MountPath: filepath.Dir(envoyConfigPath),
 	}}
 
+	var ports []v1.ContainerPort
+	if e.Spec.AdminPort != 0 {
+		ports = append(ports, v1.ContainerPort{
+			ContainerPort: e.Spec.AdminPort,
+			Name:          "admin",
+		})
+	}
+
 	return v1.Container{
 		Name:  "envoy",
 		Image: e.Spec.Image,
@@ -195,10 +204,7 @@ func envoyContainer(e *api.Envoy) v1.Container {
 			"-c", envoyConfigFilePath, "--v2-config-only",
 		},
 		VolumeMounts: vmounts,
-		Ports: []v1.ContainerPort{{
-			ContainerPort: e.Spec.AdminPort,
-			Name:          "admin",
-		}},
+		Ports:        ports,
 	}
 }
 
@@ -224,7 +230,7 @@ func configInitContainer(v *api.Envoy, env []v1.EnvVar, volumes []v1.Volume, dow
 		Image: initContainerImage,
 		Args: []string{
 			"-input",
-			"/etc/tmp-envoy/config.yaml",
+			envoySourceConfigFilePath,
 			"-output",
 			envoyConfigFilePath,
 		},

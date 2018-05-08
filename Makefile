@@ -21,8 +21,9 @@ minikube-env:
 	minikube docker-env
 
 .PHONY: deploy
+deploy:
 	kubectl create -f deploy/rbac.yaml
-# 	kubectl create -f deploy/crd.yaml
+	kubectl create -f deploy/crd.yaml
 	kubectl create -f deploy/operator.yaml
 
 
@@ -37,7 +38,7 @@ target/initializer: target $(SRCS)
 
 .PHONY: target/initializer-container
 target/initializer-container: target/initializer cmd/initializer/Dockerfile
-	cat cmd/initializer/Dockerfile | docker build -t soloio/init-envoy:0.1 -f - target
+	cat cmd/initializer/Dockerfile | docker build -t soloio/envoy-operator-init:0.1 -f - target
 
 .PHONY: operator-container
 operator-container:

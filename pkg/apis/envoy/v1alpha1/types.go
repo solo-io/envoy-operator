@@ -67,7 +67,10 @@ func (e *Envoy) SetDefaults() bool {
 		es.Image = defaultContainerImage
 		changed = true
 	}
-
+	if es.AdminPort == 0 {
+		es.AdminPort = 19000
+		changed = true
+	}
 	if es.Injection == nil {
 		if es.Deployment == nil {
 			es.Deployment = &EnvoyDeploymentSpec{}

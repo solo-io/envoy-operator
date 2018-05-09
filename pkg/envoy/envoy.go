@@ -26,6 +26,7 @@ const (
 	envoyConfigTmpVolName = "envoy-tmp-config"
 	envoyConfigTmpPath    = "/etc/envoy/"
 
+	// Config map mounts are readonly, so we have to move the transformed config to a different place...
 	envoyConfigFilePath       = "/etc/envoy/envoy.json"
 	envoySourceConfigFilePath = "/etc/tmp-envoy/envoy.json"
 )

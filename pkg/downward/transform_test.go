@@ -30,8 +30,8 @@ var _ = Describe("Transform", func() {
 			Spec: api.EnvoySpec{
 				ADSServer:         "test.blah.com",
 				ADSPort:           1234,
-				ClusterIdTemplate: "yuval",
-				NodeIdTemplate:    "{{.PodName}}-yuval",
+				ClusterIdTemplate: "soloio",
+				NodeIdTemplate:    "{{.PodName}}-soloio",
 			},
 		}
 		cfg, err := kube.GenerateEnvoyConfig(&e)
@@ -42,6 +42,7 @@ var _ = Describe("Transform", func() {
 		var outb bytes.Buffer
 		err = NewTransformer().Transform(&b, &outb)
 		Expect(err).NotTo(HaveOccurred())
+		Expect(outb.String()).To(ContainSubstring("soloio"))
 	})
 
 })

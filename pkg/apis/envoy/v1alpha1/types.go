@@ -42,20 +42,27 @@ type EnvoySpec struct {
 
 	// OpenTracing string
 
-	Deployment *EnvoyDeploymentSpec `json:"deployment"`
-	Injection  *InjectionSpec       `json:"ingress"`
+	Deployment *EnvoyDeploymentSpec `json:"deployment,omitempty"`
+	Injection  *InjectionSpec       `json:"ingress,omitempty"`
 }
 
 type EnvoyDeploymentSpec struct {
+	// How many replicas of envoy we should have?
 	Replicas uint32 `json:"replicas"`
 }
 
+// TODO: this is not implemented yet, but is written out to allow comments and discussion
 type InjectionSpec struct {
-	// 	Namespace string
+	// This is should have configuration for how to inject.
+	// for example:
+
+	Mode           string // is the list below a whitelist or blacklist
+	Namespaceslist []string
+	// annotation per pod \ namespace that overrides above
+	Annotation string
 }
 
 type EnvoyStatus struct {
-	// Fill me
 }
 
 // SetDefaults sets the default vaules for the vault spec and returns true if the spec was changed

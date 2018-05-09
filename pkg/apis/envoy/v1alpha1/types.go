@@ -27,7 +27,8 @@ type EnvoySpec struct {
 	ADSServer string `json:"adsServer"`
 	ADSPort   int32  `json:"adsPort"`
 
-	Image string `json:"image"`
+	Image        string   `json:"image"`
+	ImageCommand []string `json:"imageCommand"`
 
 	// ca, and potentially client cert
 	// ClientTLS string
@@ -72,6 +73,10 @@ func (e *Envoy) SetDefaults() bool {
 
 	if es.Image == "" {
 		es.Image = defaultContainerImage
+		changed = true
+	}
+	if len(es.ImageCommand) == 0 {
+		es.ImageCommand = []string{"/usr/local/bin/envoy"}
 		changed = true
 	}
 	if es.AdminPort == 0 {

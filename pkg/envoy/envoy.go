@@ -211,11 +211,9 @@ func envoyContainer(e *api.Envoy) v1.Container {
 	}
 
 	return v1.Container{
-		Name:  "envoy",
-		Image: e.Spec.Image,
-		// TODO: figure out the right path
-		Command: []string{"/usr/local/bin/envoy"},
-		// TODO: figure out the args needed if dumb init is used.
+		Name:    "envoy",
+		Image:   e.Spec.Image,
+		Command: e.Spec.ImageCommand,
 		Args: []string{
 			"-c", envoyConfigFilePath, "--v2-config-only",
 		},

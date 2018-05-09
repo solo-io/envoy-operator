@@ -14,8 +14,7 @@ import (
 
 func controlPlaneCluster(e *api.Envoy) envoy_api_v2.Cluster {
 	var ret envoy_api_v2.Cluster
-
-	ret.Name = "blah"
+	ret.Name = "ads-control-plane"
 	ret.Http2ProtocolOptions = &envoy_api_v2_core.Http2ProtocolOptions{}
 	ret.Type = envoy_api_v2.Cluster_STRICT_DNS
 	ret.ConnectTimeout = 5 * time.Second

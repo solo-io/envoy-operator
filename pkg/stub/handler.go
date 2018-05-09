@@ -18,7 +18,11 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(ctx types.Context, event types.Event) error {
-	// TODO: check if Deleted is set.
+
+	// deleted things will get GC'ed by kube.
+	if event.Deleted {
+		return nil
+	}
 	switch o := event.Object.(type) {
 	case *api.Envoy:
 		return envoy.Reconcile(o)

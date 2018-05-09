@@ -1,7 +1,9 @@
 package kube
 
 import (
-	"github.com/golang/protobuf/jsonpb"
+	"time"
+
+	"github.com/gogo/protobuf/jsonpb"
 
 	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -16,6 +18,7 @@ func controlPlaneCluster(e *api.Envoy) envoy_api_v2.Cluster {
 	ret.Name = "blah"
 	ret.Http2ProtocolOptions = &envoy_api_v2_core.Http2ProtocolOptions{}
 	ret.Type = envoy_api_v2.Cluster_STRICT_DNS
+	ret.ConnectTimeout = 5 * time.Second
 	ret.Hosts = []*envoy_api_v2_core.Address{{
 		Address: &envoy_api_v2_core.Address_SocketAddress{
 			SocketAddress: &envoy_api_v2_core.SocketAddress{

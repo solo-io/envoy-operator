@@ -2,6 +2,7 @@ package downward_test
 
 import (
 	"bytes"
+	"fmt"
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	kube "github.com/solo-io/envoy-operator/pkg/kube"
@@ -35,6 +36,7 @@ var _ = Describe("Transform", func() {
 		}
 		cfg, err := kube.GenerateEnvoyConfig(&e)
 		Expect(err).NotTo(HaveOccurred())
+		fmt.Fprintf(GinkgoWriter, "config: %s", cfg)
 		var b bytes.Buffer
 		b.WriteString(cfg)
 		var outb bytes.Buffer

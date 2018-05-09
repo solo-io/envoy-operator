@@ -6,6 +6,13 @@ import (
 
 const defaultContainerImage = "soloio/envoy:v0.1.6-127"
 
+const (
+	TLSCA           = "ca.crt"
+	TLSCert         = "tls.cert"
+	TLSKey          = "tls.key"
+	EnvoyTLSVolPath = "/etc/certs/"
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type EnvoyList struct {
@@ -30,8 +37,9 @@ type EnvoySpec struct {
 	Image        string   `json:"image"`
 	ImageCommand []string `json:"imageCommand"`
 
-	// ca, and potentially client cert
-	// ClientTLS string
+	// Secret name, containing ca cert, and potentially client cert and key with the names
+	// ca.crt tls.crt, tls.key
+	TLSSecretName string `json:"tls_secret_name"`
 
 	AdminPort int32 `json:"adminPort"`
 

@@ -29,6 +29,8 @@ const (
 	// Config map mounts are readonly, so we have to move the transformed config to a different place...
 	envoyConfigFilePath       = "/etc/envoy/envoy.json"
 	envoySourceConfigFilePath = "/etc/tmp-envoy/envoy.json"
+
+	envoyTLSVolName = "tls-certs"
 )
 
 func initDownward(e *api.Envoy) ([]v1.Volume, []v1.EnvVar, error) {
@@ -92,6 +94,19 @@ func deployEnvoy(e *api.Envoy) error {
 		},
 	},
 	}
+
+	if e.Spec.TLSSecretName != "" {
+		volumes = append(volumes, v1.Volume{
+			Name: envoyTLSVolName,
+			VolumeSource: v1.VolumeSource{
+				Secret: &v1.SecretVolumeSource{
+					SecretName: e.Spec.TLSSecretName,
+				},
+			},
+		})
+
+	}
+
 	downvols, env, err := initDownward(e)
 	if err != nil {
 		return err
@@ -207,6 +222,13 @@ func envoyContainer(e *api.Envoy) v1.Container {
 		ports = append(ports, v1.ContainerPort{
 			ContainerPort: e.Spec.AdminPort,
 			Name:          "admin",
+		})
+	}
+
+	if e.Spec.TLSSecretName != "" {
+		vmounts = append(vmounts, v1.VolumeMount{
+			Name:      envoyTLSVolName,
+			MountPath: filepath.Dir(api.EnvoyTLSVolPath),
 		})
 	}
 

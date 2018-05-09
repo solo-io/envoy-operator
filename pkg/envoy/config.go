@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
+	"github.com/operator-framework/operator-sdk/pkg/sdk/query"
+
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	"github.com/solo-io/envoy-operator/pkg/kube"
 	"k8s.io/api/core/v1"
@@ -13,7 +15,28 @@ import (
 )
 
 func prepareEnvoyConfig(e *api.Envoy) error {
-	cfgData, err := kube.GenerateEnvoyConfig(e)
+
+	var tlsSecret *v1.Secret
+	if e.Spec.TLSSecretName != "" {
+		sec := &v1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      e.Spec.TLSSecretName,
+				Namespace: e.Namespace,
+			},
+		}
+		err := query.Get(sec)
+		if err != nil {
+			return err
+		}
+		tlsSecret = sec
+
+	}
+
+	cfgData, err := kube.GenerateEnvoyConfig(e, tlsSecret)
 	if err != nil {
 		return err
 	}

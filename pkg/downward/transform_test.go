@@ -34,7 +34,7 @@ var _ = Describe("Transform", func() {
 				NodeIdTemplate:    "{{.PodName}}-soloio",
 			},
 		}
-		cfg, err := kube.GenerateEnvoyConfig(&e)
+		cfg, err := kube.GenerateEnvoyConfig(&e,nil)
 		Expect(err).NotTo(HaveOccurred())
 		fmt.Fprintf(GinkgoWriter, "config: %s", cfg)
 		var b bytes.Buffer

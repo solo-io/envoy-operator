@@ -1,18 +1,21 @@
 package kube
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/gogo/protobuf/jsonpb"
 
 	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
+	"k8s.io/api/core/v1"
 )
 
-func controlPlaneCluster(e *api.Envoy) envoy_api_v2.Cluster {
+func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) envoy_api_v2.Cluster {
 	var ret envoy_api_v2.Cluster
 	ret.Name = "ads-control-plane"
 	ret.Http2ProtocolOptions = &envoy_api_v2_core.Http2ProtocolOptions{}
@@ -29,12 +32,58 @@ func controlPlaneCluster(e *api.Envoy) envoy_api_v2.Cluster {
 		},
 	}}
 
+	if tlsSecret != nil {
+
+		// get the secret and see if we have a client certificate
+
+		TLSCAFile := filepath.Join(api.EnvoyTLSVolPath, api.TLSCA)
+		TLSCertFile := filepath.Join(api.EnvoyTLSVolPath, api.TLSCert)
+		TLSKeyFile := filepath.Join(api.EnvoyTLSVolPath, api.TLSKey)
+
+		// create client tls context
+		ret.TlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
+			CommonTlsContext: &envoy_api_v2_auth.CommonTlsContext{
+				ValidationContext: &envoy_api_v2_auth.CertificateValidationContext{
+					TrustedCa: toDataSource(TLSCAFile),
+				},
+			},
+			Sni: e.Spec.ADSServer,
+		}
+
+		needClientCert := hasKey(tlsSecret)
+		if needClientCert {
+
+			ret.TlsContext.CommonTlsContext.TlsCertificates = []*envoy_api_v2_auth.TlsCertificate{{
+				CertificateChain: toDataSource(TLSCertFile),
+				PrivateKey:       toDataSource(TLSKeyFile),
+			}}
+		}
+
+	}
 	// TODO setup TLS
 
 	return ret
 }
 
-func GenerateEnvoyConfig(e *api.Envoy) (string, error) {
+func hasKey(secret *v1.Secret) bool {
+	if _, ok := secret.Data[api.TLSKey]; !ok {
+		return false
+	}
+	if _, ok := secret.Data[api.TLSCert]; !ok {
+		return false
+	}
+	return true
+}
+
+func toDataSource(f string) *envoy_api_v2_core.DataSource {
+	return &envoy_api_v2_core.DataSource{
+		Specifier: &envoy_api_v2_core.DataSource_Filename{
+			Filename: f,
+		},
+	}
+}
+
+func GenerateEnvoyConfig(e *api.Envoy, tlsSecret *v1.Secret) (string, error) {
 
 	var cfgData string
 	var bootstrapConfig envoy_config_v2.Bootstrap
@@ -42,8 +91,9 @@ func GenerateEnvoyConfig(e *api.Envoy) (string, error) {
 		Id:      e.Spec.NodeIdTemplate,
 		Cluster: e.Spec.ClusterIdTemplate,
 	}
+
 	bootstrapConfig.StaticResources = &envoy_config_v2.Bootstrap_StaticResources{
-		Clusters: []envoy_api_v2.Cluster{controlPlaneCluster(e)},
+		Clusters: []envoy_api_v2.Cluster{controlPlaneCluster(e, tlsSecret)},
 	}
 	bootstrapConfig.DynamicResources = &envoy_config_v2.Bootstrap_DynamicResources{
 		AdsConfig: &envoy_api_v2_core.ApiConfigSource{

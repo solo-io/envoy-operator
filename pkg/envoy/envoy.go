@@ -184,10 +184,10 @@ func addVolumes(isPodLabels, isPodAnnotations bool) v1.Volume {
 func envoyContainer(e *api.Envoy) v1.Container {
 
 	vmounts := []v1.VolumeMount{{
-		Name:      envoyConfigVolName,
-		MountPath: filepath.Dir(envoyConfigPath),
+		Name:      envoyConfigTmpVolName,
+		MountPath: filepath.Dir(envoyConfigTmpPath),
 	}}
-
+	
 	var ports []v1.ContainerPort
 	if e.Spec.AdminPort != 0 {
 		ports = append(ports, v1.ContainerPort{
@@ -199,6 +199,8 @@ func envoyContainer(e *api.Envoy) v1.Container {
 	return v1.Container{
 		Name:  "envoy",
 		Image: e.Spec.Image,
+		// TODO: figure out the right path
+		Command:[]string{ "/usr/local/bin/envoy"},
 		// TODO: figure out the args needed if dumb init is used.
 		Args: []string{
 			"-c", envoyConfigFilePath, "--v2-config-only",

@@ -30,35 +30,20 @@ const (
 	envoySourceConfigFilePath = "/etc/tmp-envoy/envoy.json"
 )
 
-func deployEnvoy(e *api.Envoy) error {
+func initDownward(e *api.Envoy) ([]v1.Volume, []v1.EnvVar, error) {
 
 	whatsNeeded := downward.TetsNeededDownwardAPI()
 	interpolate := downward.NewInterpolator()
 	_, err := interpolate.InterpolateString(e.Spec.NodeIdTemplate, whatsNeeded)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	_, err = interpolate.InterpolateString(e.Spec.ClusterIdTemplate, whatsNeeded)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	volumes := []v1.Volume{{
-		Name: envoyConfigVolName,
-		VolumeSource: v1.VolumeSource{
-			ConfigMap: &v1.ConfigMapVolumeSource{
-				LocalObjectReference: v1.LocalObjectReference{
-					Name: configMapNameForEnvoy(e),
-				},
-			},
-		},
-	}, {
-		Name: envoyConfigTmpVolName,
-		VolumeSource: v1.VolumeSource{
-			EmptyDir: &v1.EmptyDirVolumeSource{},
-		},
-	},
-	}
+	var volumes []v1.Volume
 	downwardVolNeeded := whatsNeeded.IsPodAnnotations || whatsNeeded.IsPodLabels
 	if downwardVolNeeded {
 		volumes = append(volumes, addVolumes(whatsNeeded.IsPodLabels, whatsNeeded.IsPodAnnotations))
@@ -85,6 +70,34 @@ func deployEnvoy(e *api.Envoy) error {
 	if whatsNeeded.IsNodeIp {
 		env = append(env, addEnv("NODE_IP", "status.hostIP"))
 	}
+	return volumes, env, nil
+}
+
+func deployEnvoy(e *api.Envoy) error {
+
+	volumes := []v1.Volume{{
+		Name: envoyConfigVolName,
+		VolumeSource: v1.VolumeSource{
+			ConfigMap: &v1.ConfigMapVolumeSource{
+				LocalObjectReference: v1.LocalObjectReference{
+					Name: configMapNameForEnvoy(e),
+				},
+			},
+		},
+	}, {
+		Name: envoyConfigTmpVolName,
+		VolumeSource: v1.VolumeSource{
+			EmptyDir: &v1.EmptyDirVolumeSource{},
+		},
+	},
+	}
+	downvols, env, err := initDownward(e)
+	if err != nil {
+		return err
+	}
+	volumes = append(volumes, downvols...)
+	downwardVolNeeded := len(downvols) != 0
+
 	selector := labelsForEnvoy(e.GetName())
 
 	podTempl := v1.PodTemplateSpec{
@@ -187,7 +200,7 @@ func envoyContainer(e *api.Envoy) v1.Container {
 		Name:      envoyConfigTmpVolName,
 		MountPath: filepath.Dir(envoyConfigTmpPath),
 	}}
-	
+
 	var ports []v1.ContainerPort
 	if e.Spec.AdminPort != 0 {
 		ports = append(ports, v1.ContainerPort{
@@ -200,7 +213,7 @@ func envoyContainer(e *api.Envoy) v1.Container {
 		Name:  "envoy",
 		Image: e.Spec.Image,
 		// TODO: figure out the right path
-		Command:[]string{ "/usr/local/bin/envoy"},
+		Command: []string{"/usr/local/bin/envoy"},
 		// TODO: figure out the args needed if dumb init is used.
 		Args: []string{
 			"-c", envoyConfigFilePath, "--v2-config-only",

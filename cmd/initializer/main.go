@@ -11,7 +11,8 @@ func main() {
 	inputfile := flag.String("input", "", "input file")
 	outfile := flag.String("output", "", "output file")
 	flag.Parse()
-	err := downward.TransformFiles(*inputfile, *outfile)
+	transformer := downward.NewTransformer()
+	err := transformer.TransformFiles(*inputfile, *outfile)
 
 	if err != nil {
 		panic(err)

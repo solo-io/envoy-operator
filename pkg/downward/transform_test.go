@@ -40,7 +40,7 @@ var _ = Describe("Transform", func() {
 		var b bytes.Buffer
 		b.WriteString(cfg)
 		var outb bytes.Buffer
-		err = Transform(&b, &outb)
+		err = NewTransformer().Transform(&b, &outb)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

@@ -8,7 +8,17 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 )
 
-func TransformFiles(in, out string) error {
+type Transformer struct {
+	transformations []func(*envoy_config_v2.Bootstrap) error
+}
+
+func NewTransformer() *Transformer {
+	return &Transformer{
+		transformations: []func(*envoy_config_v2.Bootstrap) error{TransformConfigTemplates},
+	}
+}
+
+func (t *Transformer) TransformFiles(in, out string) error {
 	inreader, err := os.Open(in)
 	if err != nil {
 		return err
@@ -20,14 +30,10 @@ func TransformFiles(in, out string) error {
 		return err
 	}
 	defer outwriter.Close()
-	return Transform(inreader, outwriter)
-
+	return t.Transform(inreader, outwriter)
 }
 
-func Transform(in io.Reader, out io.Writer) error {
-	api := RetrieveDownwardAPI()
-	interpolator := NewInterpolator()
-
+func (t *Transformer) Transform(in io.Reader, out io.Writer) error {
 	var bootstrapConfig envoy_config_v2.Bootstrap
 	var unmarshaler jsonpb.Unmarshaler
 	err := unmarshaler.Unmarshal(in, &bootstrapConfig)
@@ -35,6 +41,24 @@ func Transform(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
+
+	for _, transformation := range t.transformations {
+		err := transformation(&bootstrapConfig)
+		if err != nil {
+			return err
+		}
+	}
+	var marshaller jsonpb.Marshaler
+
+	return marshaller.Marshal(out, &bootstrapConfig)
+}
+
+func TransformConfigTemplates(bootstrapConfig *envoy_config_v2.Bootstrap) error {
+
+	api := RetrieveDownwardAPI()
+	interpolator := NewInterpolator()
+
+	var err error
 
 	// interpolate the ID templates:
 	bootstrapConfig.Node.Cluster, err = interpolator.InterpolateString(bootstrapConfig.Node.Cluster, api)
@@ -46,7 +70,5 @@ func Transform(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	var marshaller jsonpb.Marshaler
-
-	return marshaller.Marshal(out, &bootstrapConfig)
+	return nil
 }

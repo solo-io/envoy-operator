@@ -27,6 +27,12 @@ func Reconcile(e *api.Envoy) (err error) {
 		return err
 	}
 
-	// TODO: update status
+	if e.Spec.Deployment != nil {
+		err = syncDeployment(e)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -1,6 +1,7 @@
 package envoy
 
 import (
+	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
 	"github.com/operator-framework/operator-sdk/pkg/sdk/query"
 
@@ -81,8 +82,11 @@ func createService(e *api.Envoy) error {
 }
 
 func setServicePorts(e *api.Envoy, s *v1.Service) {
+	s.Spec.Ports = nil
 	for _, p := range e.Spec.ServicePorts {
+		// TODO: support IANA ports?
 		s.Spec.Ports = append(s.Spec.Ports, v1.ServicePort{
+			Name:     fmt.Sprintf("port-%d", p),
 			Port:     p,
 			Protocol: v1.ProtocolTCP,
 		})

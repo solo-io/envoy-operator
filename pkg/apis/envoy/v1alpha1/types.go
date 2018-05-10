@@ -47,7 +47,7 @@ type EnvoySpec struct {
 
 	NodeIdTemplate string `json:"nodeIdTemplate"`
 
-	ServicePorts []int32
+	ServicePorts []int32 `json:"servicePorts"`
 
 	// StatsdSink string
 

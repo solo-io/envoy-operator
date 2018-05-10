@@ -7,7 +7,7 @@ easy deployment of Envoy proxies using a high level declarative API.
 
 The Envoy Operator currently supports deploying proxies as standalone pods, but will soon
 support injecting Envoy proxies as sidecar containers into existing pods to serve as transparent
-proxies.
+proxies for use in a service mesh [such as Istio](https://istio.io/).
 
 The Envoy Operator was built using the [operator sdk](https://github.com/operator-framework/operator-sdk).
 

@@ -42,4 +42,4 @@ target/initializer-container: target/initializer cmd/initializer/Dockerfile
 
 .PHONY: operator-container
 operator-container:
-	operator-sdk build soloio/envoy-operator:v0.0.1
+	./tmp/build/build.sh && IMAGE=soloio/envoy-operator:v0.0.1 ./tmp/build/docker_build.sh

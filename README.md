@@ -1,4 +1,6 @@
-# Envoy Operator!
+<h1 align="center">
+    <img src="images/Envoy operator.png" alt="Envoy operator" width="551" height="200">
+</h1>
 
 Uses this to effectivly and easily deploy envoy cluster to your kubernetes environment.
 

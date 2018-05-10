@@ -2,18 +2,25 @@
     <img src="images/Envoy operator.png" alt="Envoy operator" width="419" height="150">
 </h1>
 
-Uses this to effectivly and easily deploy envoy cluster to your kubernetes environment.
+The Envoy Operator project is a [Kubernetes Operator](https://coreos.com/operators/). It's purpose is to enable
+easy deployment of Envoy proxies using a high level declarative API.
+
+The Envoy Operator currently supports deploying proxies as standalone pods, but will soon
+support injecting Envoy proxies as sidecar containers into existing pods to serve as transparent
+proxies.
+
+The Envoy Operator was built using the [operator sdk](https://github.com/operator-framework/operator-sdk).
 
 # Quick usage
 
-Deploy to your cluster:
+Deploy the Operator:
 ```
 kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/master/deploy/rbac.yaml
 kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/master/deploy/crd.yaml
 kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/master/deploy/operator.yaml
 ```
 
-Create an envoy cluster pointing to your ADS server:
+Create an Envoy pod configured to use `ads-service.default.svc.cluster.local` as its ADS server:
 ```
 cat <<EOF | kubectl create -f -
 apiVersion: "envoy.solo.io/v1alpha1"
@@ -28,9 +35,9 @@ spec:
 EOF
 ```
 
-# How it works?
-The operator transforms the envoy spec defined [here](pkg/apis/envoy/v1alpha1/types.go) to a deployment
-and a configmap that contains envoy's static config file.
+# How does it work?
+The operator transforms the Envoy spec defined [here](pkg/apis/envoy/v1alpha1/types.go) to a deployment
+and a configmap that contains Envoy's static config file.
 
 Note that some of the parameters are templates. these templates can be filled with the kube downward api.
 Example:
@@ -44,15 +51,18 @@ spec:
   nodeIdTemplate: "{{.PodName}}"
 ```
 
-The node id given to each envoy will match its pod name.
+The node id given to each Envoy will match its pod name.
 
 The full template interpolation interface is defined [here](pkg/downward/interface.go) and should cover all of the downward API (labels and annotations included).
 
 # Use cases
-This operator's main uses case is with an ADS server. We are looking to hear more from the community about what other uses cases are of interest.
+This operator's main uses case is with an ADS server [such as Gloo](https://github.com/solo-io/gloo). We are looking to hear more from the community about what other uses cases are of interest.
 
 
-# Future plans
+# Road Map
 - SSL \ mTLS configuration
 - Pod Injection
 - Provide Locality information for zone aware routing.
+
+# Help
+Please join us on our slack channel [https://slack.solo.io/](https://slack.solo.io/) with any questions, feedback, or suggestions.

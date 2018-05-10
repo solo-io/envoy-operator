@@ -15,7 +15,6 @@ import (
 )
 
 func prepareEnvoyConfig(e *api.Envoy) error {
-
 	var tlsSecret *v1.Secret
 	if e.Spec.TLSSecretName != "" {
 		sec := &v1.Secret{
@@ -59,7 +58,7 @@ func prepareEnvoyConfig(e *api.Envoy) error {
 
 	// TODO: check if config map changed?
 	if err := action.Create(cm); err != nil && !apierrors.IsAlreadyExists(err) {
-		return fmt.Errorf("prepare vault config error: create new configmap (%s) failed: %v", cm.Name, err)
+		return fmt.Errorf("prepare envoy config error: create new configmap (%s) failed: %v", cm.Name, err)
 	}
 	return nil
 }

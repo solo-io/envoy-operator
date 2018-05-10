@@ -74,7 +74,7 @@ type InjectionSpec struct {
 type EnvoyStatus struct {
 }
 
-// SetDefaults sets the default vaules for the vault spec and returns true if the spec was changed
+// SetDefaults sets the default vaules for the Envoy spec and returns true if the spec was changed
 func (e *Envoy) SetDefaults() bool {
 	changed := false
 	es := &e.Spec

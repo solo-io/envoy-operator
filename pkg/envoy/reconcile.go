@@ -6,9 +6,7 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
 )
 
-// Reconcile reconciles the vault cluster's state to the spec specified by vr
-// by preparing the TLS secrets, deploying the etcd and vault cluster,
-// and finally updating the vault deployment if needed.
+// Reconcile reconciles the Envoy instance's state to the spec specified in the crd
 func Reconcile(e *api.Envoy) (err error) {
 	e = e.DeepCopy()
 	// Simulate initializer.

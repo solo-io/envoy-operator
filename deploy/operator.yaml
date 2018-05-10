@@ -17,4 +17,4 @@ spec:
           image: soloio/envoy-operator:v0.0.1
           command:
           - envoy-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent

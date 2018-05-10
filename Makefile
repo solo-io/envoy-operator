@@ -22,9 +22,9 @@ minikube-env:
 
 .PHONY: deploy
 deploy:
-	kubectl create -f deploy/rbac.yaml || true
-	kubectl create -f deploy/crd.yaml || true
-	kubectl create -f deploy/operator.yaml || true
+	kubectl apply -f deploy/rbac.yaml
+	kubectl apply -f deploy/crd.yaml
+	kubectl apply -f deploy/operator.yaml
 
 
 

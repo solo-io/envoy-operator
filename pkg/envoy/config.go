@@ -51,7 +51,7 @@ func prepareEnvoyConfig(e *api.Envoy) error {
 		},
 	}
 
-	cm.Labels = labelsForEnvoy(e.Name)
+	cm.Labels = labelsForEnvoy(e)
 
 	cm.Data = map[string]string{filepath.Base(envoyConfigFilePath): cfgData}
 	addOwnerRefToObject(cm, asOwner(&e.ObjectMeta))

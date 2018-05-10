@@ -32,5 +32,10 @@ func Reconcile(e *api.Envoy) (err error) {
 		}
 	}
 
+	err = syncService(e)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

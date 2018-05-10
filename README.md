@@ -2,7 +2,7 @@
     <img src="images/Envoy operator.png" alt="Envoy operator" width="419" height="150">
 </h1>
 
-The Envoy Operator project is a [Kubernetes Operator](https://coreos.com/operators/). It's purpose is to enable
+The Envoy Operator project is a [Kubernetes Operator](https://coreos.com/operators/). Its purpose is to enable
 easy deployment of Envoy proxies using a high level declarative API.
 
 The Envoy Operator currently supports deploying proxies as standalone pods, but will soon

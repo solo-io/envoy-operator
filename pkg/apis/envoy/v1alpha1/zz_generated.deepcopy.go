@@ -97,8 +97,10 @@ func (in *EnvoySpec) DeepCopyInto(out *EnvoySpec) {
 	}
 	if in.ServicePorts != nil {
 		in, out := &in.ServicePorts, &out.ServicePorts
-		*out = make([]int32, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]int32, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.Deployment != nil {
 		in, out := &in.Deployment, &out.Deployment

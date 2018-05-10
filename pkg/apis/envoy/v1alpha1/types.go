@@ -47,7 +47,10 @@ type EnvoySpec struct {
 
 	NodeIdTemplate string `json:"nodeIdTemplate"`
 
-	ServicePorts []int32 `json:"servicePorts"`
+	// Ports to expose on the service
+	// If empty, no service will created for the Envoy
+	// folllows format name: portnumber
+	ServicePorts map[string]int32 `json:"servicePorts"`
 
 	// StatsdSink string
 

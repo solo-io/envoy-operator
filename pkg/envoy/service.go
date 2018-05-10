@@ -1,7 +1,6 @@
 package envoy
 
 import (
-	"fmt"
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
 	"github.com/operator-framework/operator-sdk/pkg/sdk/query"
 
@@ -13,7 +12,6 @@ import (
 )
 
 func syncService(e *api.Envoy) error {
-
 	needService := len(e.Spec.ServicePorts) != 0
 	// get the envoy deployment
 
@@ -42,7 +40,7 @@ func syncService(e *api.Envoy) error {
 	}
 
 	// service is needed and exists; make sure it is up-to-date
-	if err == nil {
+	if err == nil && needsUpdate(e, s) {
 		return syncPorts(e, s)
 	}
 
@@ -59,7 +57,6 @@ func syncPorts(e *api.Envoy, s *v1.Service) error {
 }
 
 func createService(e *api.Envoy) error {
-
 	s := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -83,12 +80,31 @@ func createService(e *api.Envoy) error {
 
 func setServicePorts(e *api.Envoy, s *v1.Service) {
 	s.Spec.Ports = nil
-	for _, p := range e.Spec.ServicePorts {
+	for name, port := range e.Spec.ServicePorts {
 		// TODO: support IANA ports?
 		s.Spec.Ports = append(s.Spec.Ports, v1.ServicePort{
-			Name:     fmt.Sprintf("port-%d", p),
-			Port:     p,
+			Name:     name,
+			Port:     port,
 			Protocol: v1.ProtocolTCP,
 		})
 	}
+}
+
+func needsUpdate(e *api.Envoy, s *v1.Service) bool {
+	if len(e.Spec.ServicePorts) != len(s.Spec.Ports) {
+		return true
+	}
+	for _, p := range s.Spec.Ports {
+		if p.Protocol != v1.ProtocolTCP {
+			return true
+		}
+		servicePort, ok := e.Spec.ServicePorts[p.Name]
+		if !ok{
+			return true
+		}
+		if servicePort != p.Port {
+			return true
+		}
+	}
+	return false
 }

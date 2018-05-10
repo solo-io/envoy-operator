@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="images/Envoy operator.png" alt="Envoy operator" width="413" height="150">
+    <img src="images/Envoy operator.png" alt="Envoy operator" width="419" height="150">
 </h1>
 
 Uses this to effectivly and easily deploy envoy cluster to your kubernetes environment.

@@ -17,4 +17,12 @@ spec:
           image: soloio/envoy-operator:v0.0.1
           command:
           - envoy-operator
+          args:
+          - "-n"
+          - "$(POD_NAMESPACE)"
           imagePullPolicy: IfNotPresent
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace

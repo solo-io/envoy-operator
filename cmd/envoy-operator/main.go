@@ -9,6 +9,8 @@ import (
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 
 	"github.com/sirupsen/logrus"
+	"flag"
+	"log"
 )
 
 func printVersion() {
@@ -18,8 +20,12 @@ func printVersion() {
 }
 
 func main() {
+	namespace := flag.String("n", "default", "the namespace in which to monitor Envoy CRDs and manage " +
+		"resources")
+	flag.Parse()
 	printVersion()
-	sdk.Watch("envoy.solo.io/v1alpha1", "Envoy", "default", 5)
+	log.Printf("Envoy Operator: using namespace %s", *namespace)
+	sdk.Watch("envoy.solo.io/v1alpha1", "Envoy", *namespace, 5)
 	sdk.Handle(stub.NewHandler())
 	sdk.Run(context.TODO())
 }

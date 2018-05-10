@@ -1,0 +1,15 @@
+apiVersion: "envoy.solo.io/v1alpha1"
+kind: "Envoy"
+metadata:
+  name: "gloo-ingress"
+spec:
+  adsServer: control-plane.gloo-system.svc.cluster.local
+  adsPort: 8081
+  servicePorts:
+    http: 8080
+    https: 8443
+  clusterIdTemplate: ingress
+  nodeIdTemplate: "ingress~{{.PodName}}.{{.PodNamespace}}"
+  image: soloio/envoy:v0.1.6-131
+  imageCommand:
+  - /usr/local/bin/envoy

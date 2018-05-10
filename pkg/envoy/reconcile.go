@@ -2,12 +2,20 @@ package envoy
 
 import (
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
+	"log"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
 )
 
 // Reconcile reconciles the Envoy instance's state to the spec specified in the crd
 func Reconcile(e *api.Envoy) (err error) {
+
+	defer func() {
+		if err != nil {
+			log.Printf("Received error: %v\n", err)
+		}
+	}()
+
 	e = e.DeepCopy()
 	// Simulate initializer.
 	changed := e.SetDefaults()
@@ -30,6 +38,11 @@ func Reconcile(e *api.Envoy) (err error) {
 		if err != nil {
 			return err
 		}
+	}
+
+	err = syncService(e)
+	if err != nil {
+		return err
 	}
 
 	return nil

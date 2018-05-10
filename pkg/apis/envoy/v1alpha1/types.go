@@ -4,7 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const defaultContainerImage = "soloio/envoy:v0.1.6-127"
+const defaultContainerImage = "soloio/envoy:v0.1.6-131"
 
 const (
 	TLSCA           = "ca.crt"
@@ -46,6 +46,11 @@ type EnvoySpec struct {
 	ClusterIdTemplate string `json:"clusterIdTemplate"`
 
 	NodeIdTemplate string `json:"nodeIdTemplate"`
+
+	// Ports to expose on the service
+	// If empty, no service will created for the Envoy
+	// folllows format name: portnumber
+	ServicePorts map[string]int32 `json:"servicePorts"`
 
 	// StatsdSink string
 

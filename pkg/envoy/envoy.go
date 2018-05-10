@@ -114,7 +114,7 @@ func deployEnvoy(e *api.Envoy) error {
 	volumes = append(volumes, downvols...)
 	downwardVolNeeded := len(downvols) != 0
 
-	selector := labelsForEnvoy(e.GetName())
+	selector := labelsForEnvoy(e)
 
 	podTempl := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -165,8 +165,8 @@ func deployEnvoy(e *api.Envoy) error {
 	return nil
 }
 
-func labelsForEnvoy(name string) map[string]string {
-	return map[string]string{"app": "envoy", "envoy_cluster": name}
+func labelsForEnvoy(e *api.Envoy) map[string]string {
+	return map[string]string{"app": "envoy", "envoy_cluster": e.Name}
 }
 
 func addEnv(name, ref string) v1.EnvVar {

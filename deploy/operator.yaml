@@ -19,8 +19,9 @@ spec:
           - envoy-operator
           args:
           - "-n"
-          - "${POD_NAMESPACE}"
+          - "$(POD_NAMESPACE)"
           imagePullPolicy: IfNotPresent
+          env:
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:

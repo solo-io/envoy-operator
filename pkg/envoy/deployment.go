@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"reflect"
 	"log"
+	"time"
 )
 
 const (
@@ -61,7 +62,11 @@ func reconcileEnvoyDeployment(restartPods bool, envoy *api.Envoy) error {
 				if err := action.Update(desired); err != nil {
 					return errors.Wrap(err, "setting replicas to 0")
 				}
-				if err := query.Get(existing); err != nil {
+				time.Sleep(time.Second)
+				if err := query.Get(existing, query.WithGetOptions(&metav1.GetOptions{
+					TypeMeta: existing.TypeMeta,
+					ResourceVersion: existing.ResourceVersion,
+				})); err != nil {
 					return errors.Wrap(err, "getting updated resource version")
 				}
 				desired.ResourceVersion = existing.ResourceVersion

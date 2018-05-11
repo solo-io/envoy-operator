@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"fmt"
 	"log"
+	"sort"
 )
 
 func reconcileEnvoyService(envoy *api.Envoy) error {
@@ -90,6 +91,12 @@ func serviceEqualForOurPurposes(s1, s2 *v1.Service) bool {
 	if len(s1.Spec.Ports) != len(s2.Spec.Ports) {
 		return false
 	}
+	sort.SliceStable(s1.Spec.Ports, func(i, j int) bool {
+		return s1.Spec.Ports[i].Name < s1.Spec.Ports[j].Name
+	})
+	sort.SliceStable(s2.Spec.Ports, func(i, j int) bool {
+		return s2.Spec.Ports[i].Name < s2.Spec.Ports[j].Name
+	})
 	for i := range s1.Spec.Ports {
 		p1 := s1.Spec.Ports[i]
 		p2 := s2.Spec.Ports[i]

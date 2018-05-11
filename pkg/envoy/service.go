@@ -9,73 +9,70 @@ import (
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"fmt"
+	"log"
+	"sort"
 )
 
-func syncService(e *api.Envoy) error {
-	needService := len(e.Spec.ServicePorts) != 0
-	// get the envoy deployment
+func reconcileEnvoyService(envoy *api.Envoy) error {
+	desired := desiredService(envoy)
 
-	s := &v1.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      e.GetName(),
-			Namespace: e.GetNamespace(),
-		}}
+	existing := &v1.Service{
+		TypeMeta:   desired.TypeMeta,
+		ObjectMeta: desired.ObjectMeta,
+	}
 
-	err := query.Get(s)
+	needService := len(envoy.Spec.ServicePorts) != 0
 
-	if !needService {
-		// not needed service exists - get rid of it:
-		if err == nil {
-			// TODO: should we confirm ownership?
-			return action.Delete(s)
+	if err := query.Get(existing); err == nil {
+		// we no longer need this service, remove it
+		if !needService {
+			log.Printf("deleting service %v", desired.Name)
+			return action.Delete(existing)
 		}
-		if apierrors.IsNotFound(err) {
+		if serviceEqualForOurPurposes(desired, existing) {
 			return nil
 		}
-		return err
+		if !ownedBy(existing, envoy.ObjectMeta) {
+			log.Printf("Warning: an identical service exists that is not owned by this crd")
+			return nil
+		}
+		log.Printf("updating service %v", desired.Name)
+		desired.Spec.ClusterIP = existing.Spec.ClusterIP
+		desired.ResourceVersion = existing.ResourceVersion
+		return action.Update(desired)
+	} else if !needService && apierrors.IsNotFound(err) {
+		// race happened, service was already removed
+		return nil
 	}
 
-	// service is needed and exists; make sure it is up-to-date
-	if err == nil && needsUpdate(e, s) {
-		return syncPorts(e, s)
+	log.Printf("creating service %v", desired.Name)
+	if err := action.Create(desired); err != nil && !apierrors.IsAlreadyExists(err) {
+		return fmt.Errorf("prepare envoy config error: create new service (%s) failed: %v", desired.Name, err)
 	}
-
-	if !apierrors.IsNotFound(err) {
-		return err
-	}
-	// service doesnt exist: create it
-	return createService(e)
+	return nil
 }
 
-func syncPorts(e *api.Envoy, s *v1.Service) error {
-	setServicePorts(e, s)
-	return action.Update(s)
-}
-
-func createService(e *api.Envoy) error {
+func desiredService(envoy *api.Envoy) *v1.Service {
 	s := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      e.GetName(),
-			Namespace: e.GetNamespace(),
-			Labels:    labelsForEnvoy(e),
+			Name:      envoy.GetName(),
+			Namespace: envoy.GetNamespace(),
+			Labels:    labelsForEnvoy(envoy),
 		},
 		Spec: v1.ServiceSpec{
-			Selector: labelsForEnvoy(e),
+			Selector: labelsForEnvoy(envoy),
 			Type:     v1.ServiceTypeLoadBalancer,
 		},
 	}
 
-	addOwnerRefToObject(s, asOwner(&e.ObjectMeta))
-	setServicePorts(e, s)
-	return action.Create(s)
+	addOwnerRefToObject(s, ownerRef(envoy.ObjectMeta))
+	setServicePorts(envoy, s)
+	return s
 }
 
 func setServicePorts(e *api.Envoy, s *v1.Service) {
@@ -90,21 +87,25 @@ func setServicePorts(e *api.Envoy, s *v1.Service) {
 	}
 }
 
-func needsUpdate(e *api.Envoy, s *v1.Service) bool {
-	if len(e.Spec.ServicePorts) != len(s.Spec.Ports) {
-		return true
+func serviceEqualForOurPurposes(s1, s2 *v1.Service) bool {
+	if len(s1.Spec.Ports) != len(s2.Spec.Ports) {
+		return false
 	}
-	for _, p := range s.Spec.Ports {
-		if p.Protocol != v1.ProtocolTCP {
-			return true
+	sort.SliceStable(s1.Spec.Ports, func(i, j int) bool {
+		return s1.Spec.Ports[i].Name < s1.Spec.Ports[j].Name
+	})
+	sort.SliceStable(s2.Spec.Ports, func(i, j int) bool {
+		return s2.Spec.Ports[i].Name < s2.Spec.Ports[j].Name
+	})
+	for i := range s1.Spec.Ports {
+		p1 := s1.Spec.Ports[i]
+		p2 := s2.Spec.Ports[i]
+		if p1.Protocol != p2.Protocol {
+			return false
 		}
-		servicePort, ok := e.Spec.ServicePorts[p.Name]
-		if !ok{
-			return true
-		}
-		if servicePort != p.Port {
-			return true
+		if p1.Port != p2.Port {
+			return false
 		}
 	}
-	return false
+	return true
 }

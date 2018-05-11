@@ -10,6 +10,6 @@ spec:
     https: 8443
   clusterIdTemplate: ingress
   nodeIdTemplate: "ingress~{{.PodName}}.{{.PodNamespace}}"
-  image: soloio/envoy:v0.1.6-131
+  image: soloio/envoy:v0.1.6-132
   imageCommand:
   - /usr/local/bin/envoy

@@ -21,7 +21,7 @@ func RetrieveDownwardAPI() DownwardAPI {
 	return RetrieveDownwardAPIFrom(CreateLocationReader("/etc/podinfo/"), os.Getenv)
 }
 
-func TetsNeededDownwardAPI() *TestWhichIsNeedDownwardAPI {
+func TestNeededDownwardAPI() *TestWhichIsNeedDownwardAPI {
 	return &TestWhichIsNeedDownwardAPI{}
 }
 

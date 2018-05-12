@@ -35,7 +35,7 @@ const (
 
 func initDownward(e *api.Envoy) ([]v1.Volume, []v1.EnvVar, error) {
 
-	whatsNeeded := downward.TetsNeededDownwardAPI()
+	whatsNeeded := downward.TestNeededDownwardAPI()
 	interpolate := downward.NewInterpolator()
 	_, err := interpolate.InterpolateString(e.Spec.NodeIdTemplate, whatsNeeded)
 	if err != nil {

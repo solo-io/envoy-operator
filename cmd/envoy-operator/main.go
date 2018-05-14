@@ -26,6 +26,6 @@ func main() {
 	printVersion()
 	log.Printf("Envoy Operator: using namespace %s", *namespace)
 	sdk.Watch("envoy.solo.io/v1alpha1", "Envoy", *namespace, 5)
-	sdk.Handle(stub.NewHandler())
+	sdk.Handle(stub.NewHandler(*namespace))
 	sdk.Run(context.TODO())
 }

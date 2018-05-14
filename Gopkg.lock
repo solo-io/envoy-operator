@@ -187,6 +187,12 @@
   revision = "8b799c424f57fa123fc63a99d6383bc6e4c02578"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/hashstructure"
+  packages = ["."]
+  revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
+
+[[projects]]
   name = "github.com/modern-go/concurrent"
   packages = ["."]
   revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
@@ -546,6 +552,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bf9d4fa858286fcee38be600dec22be9c3665fbb89b4ea474a5c7eb2045e233e"
+  inputs-digest = "9d7b92d7d813628337a4ae9f9965c2ea51dd1b1299e2c31dc1bed91c2da8a025"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -10,7 +10,7 @@ import (
 )
 
 // Reconcile reconciles the Envoy instance's state to the spec specified in the crd
-func Reconcile(envoy *api.Envoy) (err error) {
+func Reconcile(namespace string, envoy *api.Envoy) (err error) {
 	defer func() {
 		if err != nil {
 			log.Printf("Received error: %v\n", err)
@@ -34,6 +34,11 @@ func Reconcile(envoy *api.Envoy) (err error) {
 	}
 
 	err = reconcileEnvoyService(envoy)
+	if err != nil {
+		return err
+	}
+
+	err = reconcileEnvoyInjection(namespace, envoy)
 	if err != nil {
 		return err
 	}

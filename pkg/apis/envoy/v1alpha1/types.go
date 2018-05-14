@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 const defaultContainerImage = "soloio/envoy:v0.1.6-131"
@@ -56,8 +57,11 @@ type EnvoySpec struct {
 
 	// OpenTracing string
 
+	// Deploy Standalone Envoy pods (e.g. for use as ingress, egress)
 	Deployment *EnvoyDeploymentSpec `json:"deployment,omitempty"`
-	Injection  *InjectionSpec       `json:"ingress,omitempty"`
+
+	// Inject running (application) pods with an Envoy Sidecar
+	Injection  *InjectionSpec       `json:"injection,omitempty"`
 }
 
 type EnvoyDeploymentSpec struct {
@@ -67,13 +71,12 @@ type EnvoyDeploymentSpec struct {
 
 // TODO: this is not implemented yet, but is written out to allow comments and discussion
 type InjectionSpec struct {
-	// This is should have configuration for how to inject.
-	// for example:
-
-	Mode           string // is the list below a whitelist or blacklist
-	Namespaceslist []string
-	// annotation per pod \ namespace that overrides above
-	Annotation string
+	// Inject pods with label keys and values matching this
+	// selector. The operator only injects pods in its own namespace.
+	// If the selector is left empty, all
+	// pods in this namespace will be injected with sidecars
+	// TODO: not implemented yet
+	Selector map[string]string `json:"selector,omitempty" protobuf:"bytes,2,rep,name=selector"`
 }
 
 type EnvoyStatus struct {
@@ -106,5 +109,6 @@ func (e *Envoy) SetDefaults() bool {
 			changed = true
 		}
 	}
+	log.Printf("setting defaults: %v", es)
 	return changed
 }

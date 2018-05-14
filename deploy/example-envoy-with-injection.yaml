@@ -1,0 +1,13 @@
+apiVersion: "envoy.solo.io/v1alpha1"
+kind: "Envoy"
+metadata:
+  name: "envoy-injection"
+spec:
+  adsServer: control-plane.gloo-system.svc.cluster.local
+  adsPort: 8081
+  clusterIdTemplate: node
+  nodeIdTemplate: "ingress~{{.PodName}}.{{.PodNamespace}}"
+  image: soloio/envoy:v0.1.6-132
+  imageCommand:
+  - /usr/local/bin/envoy
+  injection: {}

@@ -21,11 +21,13 @@ import (
 )
 
 const (
+	initContainerName = "envoy-init"
 	initContainerImage = "soloio/envoy-operator-init:0.1"
 
 	downwardVolName = "downward-api-volume"
 	downwardVolPath = "/etc/podinfo/"
 
+	envoyContainerName = "envoy"
 	envoyConfigVolName = "envoy-config"
 	envoyConfigPath    = "/etc/tmp-envoy/"
 
@@ -41,6 +43,9 @@ const (
 
 // restart pods in the event the configmap changed buy the deployment hasn't
 func reconcileEnvoyDeployment(restartPods bool, envoy *api.Envoy) error {
+	if envoy.Spec.Deployment == nil {
+		return nil
+	}
 	desired, err := desiredDeployment(envoy)
 	if err != nil {
 		return err
@@ -64,7 +69,7 @@ func reconcileEnvoyDeployment(restartPods bool, envoy *api.Envoy) error {
 				}
 				time.Sleep(time.Second)
 				if err := query.Get(existing, query.WithGetOptions(&metav1.GetOptions{
-					TypeMeta: existing.TypeMeta,
+					TypeMeta:        existing.TypeMeta,
 					ResourceVersion: existing.ResourceVersion,
 				})); err != nil {
 					return errors.Wrap(err, "getting updated resource version")
@@ -94,21 +99,23 @@ func reconcileEnvoyDeployment(restartPods bool, envoy *api.Envoy) error {
 }
 
 func desiredDeployment(envoy *api.Envoy) (*appsv1.Deployment, error) {
-	volumes := []v1.Volume{{
-		Name: envoyConfigVolName,
-		VolumeSource: v1.VolumeSource{
-			ConfigMap: &v1.ConfigMapVolumeSource{
-				LocalObjectReference: v1.LocalObjectReference{
-					Name: configMapNameForEnvoy(envoy),
+	volumes := []v1.Volume{
+		{
+			Name: envoyConfigVolName,
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: &v1.ConfigMapVolumeSource{
+					LocalObjectReference: v1.LocalObjectReference{
+						Name: configMapNameForEnvoy(envoy),
+					},
 				},
 			},
 		},
-	}, {
-		Name: envoyConfigTmpVolName,
-		VolumeSource: v1.VolumeSource{
-			EmptyDir: &v1.EmptyDirVolumeSource{},
+		{
+			Name: envoyConfigTmpVolName,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{},
+			},
 		},
-	},
 	}
 
 	if envoy.Spec.TLSSecretName != "" {
@@ -120,7 +127,6 @@ func desiredDeployment(envoy *api.Envoy) (*appsv1.Deployment, error) {
 				},
 			},
 		})
-
 	}
 
 	downwardApiVolumes, env, err := createDownwardApiConfig(envoy)
@@ -145,7 +151,10 @@ func desiredDeployment(envoy *api.Envoy) (*appsv1.Deployment, error) {
 		},
 	}
 
-	replicas := int32(envoy.Spec.Deployment.Replicas)
+	var replicas int32
+	if envoy.Spec.Deployment != nil {
+		replicas = int32(envoy.Spec.Deployment.Replicas)
+	}
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -186,7 +195,7 @@ func addEnv(name, ref string) v1.EnvVar {
 		ValueFrom: &v1.EnvVarSource{
 			FieldRef: &v1.ObjectFieldSelector{
 				APIVersion: "v1",
-				FieldPath: ref,
+				FieldPath:  ref,
 			},
 		},
 	}
@@ -286,7 +295,7 @@ func envoyContainer(envoy *api.Envoy) v1.Container {
 	}
 
 	return v1.Container{
-		Name:    "envoy",
+		Name:    envoyContainerName,
 		Image:   envoy.Spec.Image,
 		Command: envoy.Spec.ImageCommand,
 		Args: []string{
@@ -317,7 +326,7 @@ func configInitContainer(env []v1.EnvVar, downwardVol bool) v1.Container {
 	}
 
 	return v1.Container{
-		Name:  "envoy-init",
+		Name:  initContainerName,
 		Image: initContainerImage,
 		Args: []string{
 			"-input",

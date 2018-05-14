@@ -9,23 +9,23 @@ import (
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 )
 
-func NewHandler() handler.Handler {
-	return &Handler{}
+func NewHandler(namespace string) handler.Handler {
+	return &Handler{namespace: namespace}
 }
 
 type Handler struct {
-	// Fill me
+	namespace string
 }
 
 func (h *Handler) Handle(ctx types.Context, event types.Event) error {
-
-	// deleted things will get GC'ed by kube.
-	if event.Deleted {
-		return nil
-	}
 	switch o := event.Object.(type) {
 	case *api.Envoy:
-		return envoy.Reconcile(o)
+		// injections must be cleaned up
+		// other deleted things will get GC'ed by kube.
+		if event.Deleted {
+			return envoy.DeleteEnvoyInjection(h.namespace, o)
+		}
+		return envoy.Reconcile(h.namespace, o)
 	}
 	return nil
 }

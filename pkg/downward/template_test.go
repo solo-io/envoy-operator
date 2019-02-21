@@ -42,43 +42,50 @@ var _ = Describe("Template", func() {
 
 	It("should interpolate annotations", func() {
 		downwardMock.podAnnotations["Test"] = "mock"
-		res, err := interpolator.InterpolateString("{{.PodAnnotations.Test}}", downwardMock)
+		s := "{{.PodAnnotations.Test}}"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal("mock"))
+		Expect(s).To(Equal("mock"))
 	})
 
 	It("should interpolate labels", func() {
 		downwardMock.podLabels["Test"] = "mock"
-		res, err := interpolator.InterpolateString("{{.PodLabels.Test}}", downwardMock)
+		s := "{{.PodLabels.Test}}"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal("mock"))
+		Expect(s).To(Equal("mock"))
 	})
 
 	It("should be empty when no label exist", func() {
-		res, err := interpolator.InterpolateString("{{.PodLabels.Test}}", downwardMock)
+		s := "{{.PodLabels.Test}}"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(BeEmpty())
+		Expect(s).To(BeEmpty())
 	})
 
 	It("should interpolate podname", func() {
 		downwardMock.podName = "mock"
-		res, err := interpolator.InterpolateString("{{.PodName}}", downwardMock)
+		s := "{{.PodName}}"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal("mock"))
+		Expect(s).To(Equal("mock"))
 	})
 	It("should missing podname as empty", func() {
-		res, err := interpolator.InterpolateString("{{.PodName}}", downwardMock)
+		s := "{{.PodName}}"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(BeEmpty())
+		Expect(s).To(BeEmpty())
 	})
 
 	It("should error on bad template", func() {
-		_, err := interpolator.InterpolateString("{{ bad template", downwardMock)
+		s := "{{ bad template"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).To(HaveOccurred())
 	})
 
-	It("should ransform", func() {
-		_, err := interpolator.InterpolateString("{{ bad template", downwardMock)
+	It("should error on a bad template", func() {
+		s := "{{ bad template"
+		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).To(HaveOccurred())
 	})
 

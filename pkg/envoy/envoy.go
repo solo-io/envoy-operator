@@ -8,7 +8,7 @@ import (
 
 	"github.com/solo-io/envoy-operator/pkg/downward"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -37,11 +37,11 @@ func initDownward(e *api.Envoy) ([]v1.Volume, []v1.EnvVar, error) {
 
 	whatsNeeded := downward.TestNeededDownwardAPI()
 	interpolate := downward.NewInterpolator()
-	_, err := interpolate.InterpolateString(e.Spec.NodeIdTemplate, whatsNeeded)
+	err := interpolate.InterpolateString(&e.Spec.NodeIdTemplate, whatsNeeded)
 	if err != nil {
 		return nil, nil, err
 	}
-	_, err = interpolate.InterpolateString(e.Spec.ClusterIdTemplate, whatsNeeded)
+	err = interpolate.InterpolateString(&e.Spec.ClusterIdTemplate, whatsNeeded)
 	if err != nil {
 		return nil, nil, err
 	}

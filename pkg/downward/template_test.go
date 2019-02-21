@@ -83,7 +83,7 @@ var _ = Describe("Template", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
-	It("should ransform", func() {
+	It("should error on a bad template", func() {
 		s := "{{ bad template"
 		err := interpolator.InterpolateString(&s, downwardMock)
 		Expect(err).To(HaveOccurred())

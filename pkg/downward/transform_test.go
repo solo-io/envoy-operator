@@ -76,7 +76,7 @@ var _ = Describe("Transform", func() {
 			Expect(bootstrapConfig.Node.Cluster).To(Equal("Test"))
 		})
 
-		It("should transform node id", func() {
+		It("should transform metadata", func() {
 			bootstrapConfig.Node.Metadata = &types.Struct{
 				Fields: map[string]*types.Value{
 					"foo": {

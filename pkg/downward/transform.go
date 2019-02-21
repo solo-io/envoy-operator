@@ -91,19 +91,19 @@ func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_v2.Bootstrap,
 		return err
 	}
 
-	transormStruct(interpolate, bootstrapConfig.Node.Metadata)
+	transformStruct(interpolate, bootstrapConfig.Node.Metadata)
 
 	return nil
 }
-func transormValue(interpolate func(*string) error, v *types.Value) error {
+func transformValue(interpolate func(*string) error, v *types.Value) error {
 	switch v := v.Kind.(type) {
 	case (*types.Value_StringValue):
 		return interpolate(&v.StringValue)
 	case (*types.Value_StructValue):
-		return transormStruct(interpolate, v.StructValue)
+		return transformStruct(interpolate, v.StructValue)
 	case (*types.Value_ListValue):
 		for _, val := range v.ListValue.Values {
-			if err := transormValue(interpolate, val); err != nil {
+			if err := transformValue(interpolate, val); err != nil {
 				return err
 			}
 		}
@@ -111,13 +111,13 @@ func transormValue(interpolate func(*string) error, v *types.Value) error {
 	return nil
 }
 
-func transormStruct(interpolate func(*string) error, s *types.Struct) error {
+func transformStruct(interpolate func(*string) error, s *types.Struct) error {
 	if s == nil {
 		return nil
 	}
 
 	for _, v := range s.Fields {
-		if err := transormValue(interpolate, v); err != nil {
+		if err := transformValue(interpolate, v); err != nil {
 			return err
 		}
 	}

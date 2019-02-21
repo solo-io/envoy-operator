@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gogo/protobuf/types"
+
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/gogo/protobuf/jsonpb"
 	yaml "gopkg.in/yaml.v2"
@@ -67,23 +69,58 @@ func (t *Transformer) Transform(in io.Reader, out io.Writer) error {
 }
 
 func TransformConfigTemplates(bootstrapConfig *envoy_config_v2.Bootstrap) error {
-
 	api := RetrieveDownwardAPI()
+	return TransformConfigTemplatesWithApi(bootstrapConfig, api)
+}
+
+func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_v2.Bootstrap, api DownwardAPI) error {
+
 	interpolator := NewInterpolator()
 
 	var err error
 
+	interpolate := func(s *string) error { return interpolator.InterpolateString(s, api) }
 	// interpolate the ID templates:
-	err = interpolator.InterpolateString(&bootstrapConfig.Node.Cluster, api)
+	err = interpolate(&bootstrapConfig.Node.Cluster)
 	if err != nil {
 		return err
 	}
 
-	err = interpolator.InterpolateString(&bootstrapConfig.Node.Id, api)
+	err = interpolate(&bootstrapConfig.Node.Id)
 	if err != nil {
 		return err
 	}
 
+	transormStruct(interpolate, bootstrapConfig.Node.Metadata)
+
+	return nil
+}
+func transormValue(interpolate func(*string) error, v *types.Value) error {
+	switch v := v.Kind.(type) {
+	case (*types.Value_StringValue):
+		return interpolate(&v.StringValue)
+	case (*types.Value_StructValue):
+		return transormStruct(interpolate, v.StructValue)
+	case (*types.Value_ListValue):
+		for _, val := range v.ListValue.Values {
+			if err := transormValue(interpolate, val); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func transormStruct(interpolate func(*string) error, s *types.Struct) error {
+	if s == nil {
+		return nil
+	}
+
+	for _, v := range s.Fields {
+		if err := transormValue(interpolate, v); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

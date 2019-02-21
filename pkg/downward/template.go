@@ -10,7 +10,7 @@ import (
 type Interpolator interface {
 	InterpolateIO(in io.Reader, out io.Writer, data DownwardAPI) error
 	Interpolate(tmpl string, out io.Writer, data DownwardAPI) error
-	InterpolateString(string, DownwardAPI) (string, error)
+	InterpolateString(*string, DownwardAPI) error
 }
 
 func NewInterpolator() Interpolator {
@@ -40,11 +40,12 @@ func (*interpolator) Interpolate(tmpl string, out io.Writer, data DownwardAPI) e
 	return nil
 }
 
-func (i *interpolator) InterpolateString(tmpl string, data DownwardAPI) (string, error) {
+func (i *interpolator) InterpolateString(tmpl *string, data DownwardAPI) error {
 	var b bytes.Buffer
-	err := i.Interpolate(tmpl, &b, data)
+	err := i.Interpolate(*tmpl, &b, data)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return b.String(), nil
+	*tmpl = b.String()
+	return nil
 }

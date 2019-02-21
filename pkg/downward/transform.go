@@ -9,7 +9,7 @@ import (
 
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/gogo/protobuf/jsonpb"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Transformer struct {
@@ -74,15 +74,16 @@ func TransformConfigTemplates(bootstrapConfig *envoy_config_v2.Bootstrap) error 
 	var err error
 
 	// interpolate the ID templates:
-	bootstrapConfig.Node.Cluster, err = interpolator.InterpolateString(bootstrapConfig.Node.Cluster, api)
+	err = interpolator.InterpolateString(&bootstrapConfig.Node.Cluster, api)
 	if err != nil {
 		return err
 	}
 
-	bootstrapConfig.Node.Id, err = interpolator.InterpolateString(bootstrapConfig.Node.Id, api)
+	err = interpolator.InterpolateString(&bootstrapConfig.Node.Id, api)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

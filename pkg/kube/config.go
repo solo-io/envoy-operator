@@ -2,9 +2,9 @@ package kube
 
 import (
 	"path/filepath"
-	"time"
 
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/ptypes/duration"
 
 	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
@@ -15,12 +15,13 @@ import (
 	"k8s.io/api/core/v1"
 )
 
-func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) envoy_api_v2.Cluster {
+func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_api_v2.Cluster {
 	var ret envoy_api_v2.Cluster
 	ret.Name = "ads-control-plane"
 	ret.Http2ProtocolOptions = &envoy_api_v2_core.Http2ProtocolOptions{}
-	ret.Type = envoy_api_v2.Cluster_STRICT_DNS
-	ret.ConnectTimeout = 5 * time.Second
+	ret.ConnectTimeout = &duration.Duration{
+		Seconds: 5,
+	}
 	ret.Hosts = []*envoy_api_v2_core.Address{{
 		Address: &envoy_api_v2_core.Address_SocketAddress{
 			SocketAddress: &envoy_api_v2_core.SocketAddress{
@@ -43,8 +44,10 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) envoy_api_v2.Cluste
 		// create client tls context
 		ret.TlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
 			CommonTlsContext: &envoy_api_v2_auth.CommonTlsContext{
-				ValidationContext: &envoy_api_v2_auth.CertificateValidationContext{
-					TrustedCa: toDataSource(TLSCAFile),
+				ValidationContextType: &envoy_api_v2_auth.CommonTlsContext_ValidationContext{
+					ValidationContext: &envoy_api_v2_auth.CertificateValidationContext{
+						TrustedCa: toDataSource(TLSCAFile),
+					},
 				},
 			},
 			Sni: e.Spec.ADSServer,
@@ -62,7 +65,7 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) envoy_api_v2.Cluste
 	}
 	// TODO setup TLS
 
-	return ret
+	return &ret
 }
 
 func hasKey(secret *v1.Secret) bool {
@@ -93,7 +96,7 @@ func GenerateEnvoyConfig(e *api.Envoy, tlsSecret *v1.Secret) (string, error) {
 	}
 
 	bootstrapConfig.StaticResources = &envoy_config_v2.Bootstrap_StaticResources{
-		Clusters: []envoy_api_v2.Cluster{controlPlaneCluster(e, tlsSecret)},
+		Clusters: []*envoy_api_v2.Cluster{controlPlaneCluster(e, tlsSecret)},
 	}
 	bootstrapConfig.DynamicResources = &envoy_config_v2.Bootstrap_DynamicResources{
 		AdsConfig: &envoy_api_v2_core.ApiConfigSource{
@@ -117,9 +120,10 @@ func GenerateEnvoyConfig(e *api.Envoy, tlsSecret *v1.Secret) (string, error) {
 			},
 		},
 	}
+	bootstrapConfig.Admin = &envoy_config_v2.Admin{}
 	bootstrapConfig.Admin.AccessLogPath = "/dev/stderr"
 	if e.Spec.AdminPort != 0 {
-		bootstrapConfig.Admin.Address = envoy_api_v2_core.Address{
+		bootstrapConfig.Admin.Address = &envoy_api_v2_core.Address{
 			Address: &envoy_api_v2_core.Address_SocketAddress{
 				SocketAddress: &envoy_api_v2_core.SocketAddress{
 					Address: "0.0.0.0",

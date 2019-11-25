@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/gogo/protobuf/types"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -95,13 +95,13 @@ func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_v2.Bootstrap,
 
 	return nil
 }
-func transformValue(interpolate func(*string) error, v *types.Value) error {
+func transformValue(interpolate func(*string) error, v *structpb.Value) error {
 	switch v := v.Kind.(type) {
-	case (*types.Value_StringValue):
+	case (*structpb.Value_StringValue):
 		return interpolate(&v.StringValue)
-	case (*types.Value_StructValue):
+	case (*structpb.Value_StructValue):
 		return transformStruct(interpolate, v.StructValue)
-	case (*types.Value_ListValue):
+	case (*structpb.Value_ListValue):
 		for _, val := range v.ListValue.Values {
 			if err := transformValue(interpolate, val); err != nil {
 				return err
@@ -111,7 +111,7 @@ func transformValue(interpolate func(*string) error, v *types.Value) error {
 	return nil
 }
 
-func transformStruct(interpolate func(*string) error, s *types.Struct) error {
+func transformStruct(interpolate func(*string) error, s *structpb.Struct) error {
 	if s == nil {
 		return nil
 	}

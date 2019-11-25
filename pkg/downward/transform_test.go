@@ -6,7 +6,7 @@ import (
 
 	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
-	"github.com/gogo/protobuf/types"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	kube "github.com/solo-io/envoy-operator/pkg/kube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,10 +77,10 @@ var _ = Describe("Transform", func() {
 		})
 
 		It("should transform metadata", func() {
-			bootstrapConfig.Node.Metadata = &types.Struct{
-				Fields: map[string]*types.Value{
+			bootstrapConfig.Node.Metadata = &structpb.Struct{
+				Fields: map[string]*structpb.Value{
 					"foo": {
-						Kind: &types.Value_StringValue{
+						Kind: &structpb.Value_StringValue{
 							StringValue: "{{.PodName}}",
 						},
 					},
@@ -89,7 +89,7 @@ var _ = Describe("Transform", func() {
 
 			err := TransformConfigTemplatesWithApi(bootstrapConfig, api)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(bootstrapConfig.Node.Metadata.Fields["foo"].Kind.(*types.Value_StringValue).StringValue).To(Equal("Test"))
+			Expect(bootstrapConfig.Node.Metadata.Fields["foo"].Kind.(*structpb.Value_StringValue).StringValue).To(Equal("Test"))
 		})
 	})
 })

@@ -1,11 +1,13 @@
 module github.com/solo-io/envoy-operator
 
+go 1.13
+
 require (
 	github.com/PuerkitoBio/purell v1.1.0
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 	github.com/davecgh/go-spew v1.1.0
 	github.com/emicklei/go-restful v2.7.0+incompatible
-	github.com/envoyproxy/go-control-plane v0.0.0-20180404041657-469a90e97a00
+	github.com/envoyproxy/go-control-plane v0.9.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa
 	github.com/go-openapi/jsonreference v0.0.0-20180322222742-3fb327e6747d
@@ -14,7 +16,7 @@ require (
 	github.com/gogo/googleapis v1.0.0
 	github.com/gogo/protobuf v1.0.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.1.0
+	github.com/golang/protobuf v1.3.2
 	github.com/google/btree v0.0.0-20180124185431-e89373fe6b4a
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
 	github.com/googleapis/gnostic v0.1.0
@@ -33,12 +35,12 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/sirupsen/logrus v1.0.5
 	github.com/spf13/pflag v1.0.1
-	golang.org/x/crypto v0.0.0-20180502184808-8b1d31080a76
-	golang.org/x/net v0.0.0-20180502164142-640f4622ab69
-	golang.org/x/sys v0.0.0-20180501092740-78d5f264b493
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
 	golang.org/x/text v0.3.0
-	google.golang.org/genproto v0.0.0-20180427144745-86e600f69ee4
-	google.golang.org/grpc v1.11.3
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+	google.golang.org/grpc v1.23.0
 	gopkg.in/inf.v0 v0.9.1
 	gopkg.in/yaml.v2 v2.2.1
 	k8s.io/api v0.0.0-20180127130940-acf347b865f2

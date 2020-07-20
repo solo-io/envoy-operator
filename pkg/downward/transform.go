@@ -15,6 +15,7 @@ import (
 
 	// register all top level types used in the bootstrap config
 	_ "github.com/envoyproxy/go-control-plane/envoy/config/metrics/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 )
 

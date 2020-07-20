@@ -1,8 +1,9 @@
 package envoy
 
 import (
-	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	"log"
+
+	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk/action"
 )

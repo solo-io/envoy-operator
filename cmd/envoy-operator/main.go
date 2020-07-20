@@ -4,13 +4,14 @@ import (
 	"context"
 	"runtime"
 
-	stub "github.com/solo-io/envoy-operator/pkg/stub"
 	sdk "github.com/operator-framework/operator-sdk/pkg/sdk"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	stub "github.com/solo-io/envoy-operator/pkg/stub"
 
-	"github.com/sirupsen/logrus"
 	"flag"
 	"log"
+
+	"github.com/sirupsen/logrus"
 )
 
 func printVersion() {
@@ -20,7 +21,7 @@ func printVersion() {
 }
 
 func main() {
-	namespace := flag.String("n", "default", "the namespace in which to monitor Envoy CRDs and manage " +
+	namespace := flag.String("n", "default", "the namespace in which to monitor Envoy CRDs and manage "+
 		"resources")
 	flag.Parse()
 	printVersion()

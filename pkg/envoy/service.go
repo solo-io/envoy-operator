@@ -7,7 +7,7 @@ import (
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -99,7 +99,7 @@ func needsUpdate(e *api.Envoy, s *v1.Service) bool {
 			return true
 		}
 		servicePort, ok := e.Spec.ServicePorts[p.Name]
-		if !ok{
+		if !ok {
 			return true
 		}
 		if servicePort != p.Port {

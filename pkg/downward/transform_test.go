@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
+	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	kube "github.com/solo-io/envoy-operator/pkg/kube"

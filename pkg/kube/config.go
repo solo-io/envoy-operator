@@ -6,10 +6,10 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/duration"
 
-	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
+	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	"k8s.io/api/core/v1"
@@ -22,7 +22,7 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_api_v2.Clust
 	ret.ConnectTimeout = &duration.Duration{
 		Seconds: 5,
 	}
-	ret.Hosts = []*envoy_api_v2_core.Address{{
+	ret.HiddenEnvoyDeprecatedHosts = []*envoy_api_v2_core.Address{{
 		Address: &envoy_api_v2_core.Address_SocketAddress{
 			SocketAddress: &envoy_api_v2_core.SocketAddress{
 				Address: e.Spec.ADSServer,
@@ -42,7 +42,7 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_api_v2.Clust
 		TLSKeyFile := filepath.Join(api.EnvoyTLSVolPath, api.TLSKey)
 
 		// create client tls context
-		ret.TlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
+		ret.HiddenEnvoyDeprecatedTlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
 			CommonTlsContext: &envoy_api_v2_auth.CommonTlsContext{
 				ValidationContextType: &envoy_api_v2_auth.CommonTlsContext_ValidationContext{
 					ValidationContext: &envoy_api_v2_auth.CertificateValidationContext{
@@ -56,7 +56,7 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_api_v2.Clust
 		needClientCert := hasKey(tlsSecret)
 		if needClientCert {
 
-			ret.TlsContext.CommonTlsContext.TlsCertificates = []*envoy_api_v2_auth.TlsCertificate{{
+			ret.HiddenEnvoyDeprecatedTlsContext.CommonTlsContext.TlsCertificates = []*envoy_api_v2_auth.TlsCertificate{{
 				CertificateChain: toDataSource(TLSCertFile),
 				PrivateKey:       toDataSource(TLSKeyFile),
 			}}

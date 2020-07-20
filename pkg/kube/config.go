@@ -1,8 +1,9 @@
 package kube
 
 import (
-	"github.com/golang/protobuf/ptypes"
 	"path/filepath"
+
+	"github.com/golang/protobuf/ptypes"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/duration"
@@ -14,7 +15,7 @@ import (
 	envoy_tls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) (*envoy_cluster.Cluster, error) {

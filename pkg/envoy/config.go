@@ -9,7 +9,7 @@ import (
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	"github.com/solo-io/envoy-operator/pkg/kube"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

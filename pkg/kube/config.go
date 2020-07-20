@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"github.com/golang/protobuf/ptypes"
 	"path/filepath"
 
 	"github.com/golang/protobuf/jsonpb"
@@ -9,20 +10,21 @@ import (
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	envoy_cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	envoy_tls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	"k8s.io/api/core/v1"
 )
 
-func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_cluster.Cluster {
+func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) (*envoy_cluster.Cluster, error) {
 	var ret envoy_cluster.Cluster
 	ret.Name = "ads-control-plane"
 	ret.Http2ProtocolOptions = &envoy_core.Http2ProtocolOptions{}
 	ret.ConnectTimeout = &duration.Duration{
 		Seconds: 5,
 	}
-	ret.HiddenEnvoyDeprecatedHosts = []*envoy_core.Address{{
+	hostAddress := &envoy_core.Address{
 		Address: &envoy_core.Address_SocketAddress{
 			SocketAddress: &envoy_core.SocketAddress{
 				Address: e.Spec.ADSServer,
@@ -31,7 +33,18 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_cluster.Clus
 				},
 			},
 		},
-	}}
+	}
+	ret.LoadAssignment = &envoy_endpoint.ClusterLoadAssignment{
+		Endpoints: []*envoy_endpoint.LocalityLbEndpoints{{
+			LbEndpoints: []*envoy_endpoint.LbEndpoint{{
+				HostIdentifier: &envoy_endpoint.LbEndpoint_Endpoint{
+					Endpoint: &envoy_endpoint.Endpoint{
+						Address: hostAddress,
+					},
+				},
+			}},
+		}},
+	}
 
 	if tlsSecret != nil {
 
@@ -42,7 +55,7 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_cluster.Clus
 		TLSKeyFile := filepath.Join(api.EnvoyTLSVolPath, api.TLSKey)
 
 		// create client tls context
-		ret.HiddenEnvoyDeprecatedTlsContext = &envoy_tls.UpstreamTlsContext{
+		tlsContext := &envoy_tls.UpstreamTlsContext{
 			CommonTlsContext: &envoy_tls.CommonTlsContext{
 				ValidationContextType: &envoy_tls.CommonTlsContext_ValidationContext{
 					ValidationContext: &envoy_tls.CertificateValidationContext{
@@ -56,16 +69,27 @@ func controlPlaneCluster(e *api.Envoy, tlsSecret *v1.Secret) *envoy_cluster.Clus
 		needClientCert := hasKey(tlsSecret)
 		if needClientCert {
 
-			ret.HiddenEnvoyDeprecatedTlsContext.CommonTlsContext.TlsCertificates = []*envoy_tls.TlsCertificate{{
+			tlsContext.CommonTlsContext.TlsCertificates = []*envoy_tls.TlsCertificate{{
 				CertificateChain: toDataSource(TLSCertFile),
 				PrivateKey:       toDataSource(TLSKeyFile),
 			}}
 		}
 
+		tlsContextAny, err := ptypes.MarshalAny(tlsContext)
+		if err != nil {
+			return nil, err
+		}
+		ret.TransportSocket = &envoy_core.TransportSocket{
+			Name: "tls",
+			ConfigType: &envoy_core.TransportSocket_TypedConfig{
+				TypedConfig: tlsContextAny,
+			},
+		}
+
 	}
 	// TODO setup TLS
 
-	return &ret
+	return &ret, nil
 }
 
 func hasKey(secret *v1.Secret) bool {
@@ -95,8 +119,12 @@ func GenerateEnvoyConfig(e *api.Envoy, tlsSecret *v1.Secret) (string, error) {
 		Cluster: e.Spec.ClusterIdTemplate,
 	}
 
+	cluster, err := controlPlaneCluster(e, tlsSecret)
+	if err != nil {
+		return "", err
+	}
 	bootstrapConfig.StaticResources = &envoy_config_bootstrap.Bootstrap_StaticResources{
-		Clusters: []*envoy_cluster.Cluster{controlPlaneCluster(e, tlsSecret)},
+		Clusters: []*envoy_cluster.Cluster{cluster},
 	}
 	bootstrapConfig.DynamicResources = &envoy_config_bootstrap.Bootstrap_DynamicResources{
 		AdsConfig: &envoy_core.ApiConfigSource{

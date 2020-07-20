@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	envoy_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	api "github.com/solo-io/envoy-operator/pkg/apis/envoy/v1alpha1"
 	kube "github.com/solo-io/envoy-operator/pkg/kube"
@@ -51,14 +51,14 @@ var _ = Describe("Transform", func() {
 	Context("bootstrap transforms", func() {
 		var (
 			api             *mockDownward
-			bootstrapConfig *envoy_config_v2.Bootstrap
+			bootstrapConfig *envoy_config_bootstrap.Bootstrap
 		)
 		BeforeEach(func() {
 			api = &mockDownward{
 				podName: "Test",
 			}
-			bootstrapConfig = new(envoy_config_v2.Bootstrap)
-			bootstrapConfig.Node = &envoy_api_v2_core.Node{}
+			bootstrapConfig = new(envoy_config_bootstrap.Bootstrap)
+			bootstrapConfig.Node = &envoy_core.Node{}
 		})
 
 		It("should transform node id", func() {

@@ -9,7 +9,7 @@ import (
 
 	structpb "github.com/golang/protobuf/ptypes/struct"
 
-	envoy_config_v2 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	"github.com/golang/protobuf/jsonpb"
 	yaml "gopkg.in/yaml.v2"
 
@@ -18,12 +18,12 @@ import (
 )
 
 type Transformer struct {
-	transformations []func(*envoy_config_v2.Bootstrap) error
+	transformations []func(*envoy_config_bootstrap.Bootstrap) error
 }
 
 func NewTransformer() *Transformer {
 	return &Transformer{
-		transformations: []func(*envoy_config_v2.Bootstrap) error{TransformConfigTemplates},
+		transformations: []func(*envoy_config_bootstrap.Bootstrap) error{TransformConfigTemplates},
 	}
 }
 
@@ -52,7 +52,7 @@ func (t *Transformer) Transform(in io.Reader, out io.Writer) error {
 
 	jsonreader := bytes.NewReader(jsondata)
 
-	var bootstrapConfig envoy_config_v2.Bootstrap
+	var bootstrapConfig envoy_config_bootstrap.Bootstrap
 	var unmarshaler jsonpb.Unmarshaler
 	err = unmarshaler.Unmarshal(jsonreader, &bootstrapConfig)
 
@@ -71,12 +71,12 @@ func (t *Transformer) Transform(in io.Reader, out io.Writer) error {
 	return marshaller.Marshal(out, &bootstrapConfig)
 }
 
-func TransformConfigTemplates(bootstrapConfig *envoy_config_v2.Bootstrap) error {
+func TransformConfigTemplates(bootstrapConfig *envoy_config_bootstrap.Bootstrap) error {
 	api := RetrieveDownwardAPI()
 	return TransformConfigTemplatesWithApi(bootstrapConfig, api)
 }
 
-func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_v2.Bootstrap, api DownwardAPI) error {
+func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_bootstrap.Bootstrap, api DownwardAPI) error {
 
 	interpolator := NewInterpolator()
 

@@ -1,8 +1,16 @@
 #!/bin/bash
 
-set -x
+set -ex
 
 protoc --version
+
+if [ ! -f .gitignore ]; then
+  echo "_output" > .gitignore
+fi
+
+make install-go-tools
+
+set +e
 
 make generated-code -B > /dev/null
 if [[ $? -ne 0 ]]; then
@@ -11,7 +19,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
   echo "Generating code produced a non-empty diff"
-  echo "Try running 'make generated-code -B' then re-pushing."
+  echo "Try running 'make install-go-tools generated-code -B' then re-pushing."
   git status --porcelain
   git diff | cat
   exit 1;

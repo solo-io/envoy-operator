@@ -67,4 +67,4 @@ generated-code:
 	go mod tidy
 	GO111MODULE=on go generate ./...
 	gofmt -w $(SUBDIRS)
-	goimports -w $(SUBDIRS)
+	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)

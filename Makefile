@@ -43,3 +43,15 @@ target/initializer-container: target/initializer cmd/initializer/Dockerfile
 .PHONY: operator-container
 operator-container:
 	./tmp/build/build.sh && IMAGE=soloio/envoy-operator:v0.0.1 ./tmp/build/docker_build.sh
+
+#----------------------------------------------------------------------------------
+# Generated Code
+#----------------------------------------------------------------------------------
+
+.PHONY: generated-code
+SUBDIRS:=$(shell ls -d -- */)
+generated-code:
+	go mod tidy
+	GO111MODULE=on go generate ./...
+	gofmt -w $(SUBDIRS)
+	goimports -w $(SUBDIRS)

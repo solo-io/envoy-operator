@@ -1,4 +1,5 @@
 vendor/
+_output
 tmp/_output/
 target/
 .idea

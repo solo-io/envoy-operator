@@ -3,6 +3,7 @@ package downward
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"io"
 	"io/ioutil"
 	"os"

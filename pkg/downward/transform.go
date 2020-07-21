@@ -29,7 +29,7 @@ func NewTransformer() *Transformer {
 
 func (t *Transformer) TransformFiles(in, out string) error {
 	inreader, err := os.Open(in)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 	defer inreader.Close()

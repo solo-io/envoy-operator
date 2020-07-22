@@ -8,7 +8,6 @@ jobs:
     - name: Cancel Previous Actions
       uses: styfle/cancel-workflow-action@0.3.1
       with:
-        workflow_id: 1442930
         access_token: ${{ github.token }}
     - name: Set up Go 1.14
       uses: actions/setup-go@v1

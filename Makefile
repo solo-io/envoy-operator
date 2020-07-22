@@ -43,3 +43,28 @@ target/initializer-container: target/initializer cmd/initializer/Dockerfile
 .PHONY: operator-container
 operator-container:
 	./tmp/build/build.sh && IMAGE=soloio/envoy-operator:v0.0.1 ./tmp/build/docker_build.sh
+
+#----------------------------------------------------------------------------------
+# Generated Code
+#----------------------------------------------------------------------------------
+
+# must be a seperate target so that make waits for it to complete before moving on
+.PHONY: mod-download
+mod-download:
+	go mod download
+
+DEPSGOBIN=$(shell pwd)/_output/.bin
+
+# https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
+.PHONY: install-go-tools
+install-go-tools: mod-download
+	mkdir -p $(DEPSGOBIN)
+	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
+
+.PHONY: generated-code
+SUBDIRS:=$(shell ls -d -- */)
+generated-code:
+	go mod tidy
+	GO111MODULE=on go generate ./...
+	gofmt -w $(SUBDIRS)
+	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)

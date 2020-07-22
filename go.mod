@@ -15,7 +15,7 @@ require (
 	github.com/go-openapi/swag v0.0.0-20180405201759-811b1089cde9 // indirect
 	github.com/gogo/protobuf v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.3.5
 	github.com/google/btree v0.0.0-20180124185431-e89373fe6b4a // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/googleapis/gnostic v0.1.0 // indirect

@@ -42,3 +42,7 @@ require (
 	k8s.io/client-go v0.0.0-20180103015815-9389c055a838 // indirect
 	k8s.io/kube-openapi v0.0.0-20180501212615-f08db293d3ef // indirect
 )
+
+replace (
+    github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
+)

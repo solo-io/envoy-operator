@@ -68,3 +68,7 @@ generated-code:
 	GO111MODULE=on go generate ./...
 	gofmt -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
+
+.PHONY: clean
+clean:
+	rm -rf _output

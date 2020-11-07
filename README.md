@@ -20,7 +20,7 @@ kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/maste
 kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/master/deploy/operator.yaml
 ```
 
-Create an Envoy pod configured to use `ads-service.default.svc.cluster.local` as its [xDS  server](https://github.com/envoyproxy/data-plane-api/blob/master/XDS_PROTOCOL.md):
+Create an Envoy pod configured to use `ads-service.default.svc.cluster.local` as its [xDS  server](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol):
 ```
 cat <<EOF | kubectl create -f -
 apiVersion: "envoy.solo.io/v1alpha1"
@@ -56,7 +56,7 @@ The node id given to each Envoy will match its pod name.
 The full template interpolation interface is defined [here](pkg/downward/interface.go) and should cover all of the downward API (labels and annotations included).
 
 # Use cases
-This operator's main uses case is with an ADS-enabled [xDS  server](https://github.com/envoyproxy/data-plane-api/blob/master/XDS_PROTOCOL.md) [such as Gloo](https://github.com/solo-io/gloo). We are looking to hear more from the community about what other uses cases are of interest.
+This operator's main uses case is with an ADS-enabled [xDS  server](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol) [such as Gloo](https://github.com/solo-io/gloo). We are looking to hear more from the community about what other uses cases are of interest.
 
 
 # Road Map

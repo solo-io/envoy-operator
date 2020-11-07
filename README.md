@@ -20,7 +20,7 @@ kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/maste
 kubectl create -f https://raw.githubusercontent.com/solo-io/envoy-operator/master/deploy/operator.yaml
 ```
 
-Create an Envoy pod configured to use `ads-service.default.svc.cluster.local` as its [xDS  server](https://github.com/envoyproxy/data-plane-api/blob/master/XDS_PROTOCOL.md):
+Create an Envoy pod configured to use `ads-service.default.svc.cluster.local` as its [xDS  server](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol):
 ```
 cat <<EOF | kubectl create -f -
 apiVersion: "envoy.solo.io/v1alpha1"

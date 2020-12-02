@@ -1,12 +1,13 @@
 package downward
 
 import (
-	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
 
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
@@ -18,12 +19,12 @@ import (
 )
 
 type Transformer struct {
-	transformations []func(*envoy_config_bootstrap.Bootstrap) error
+	transformations []func(node *envoy_config_core_v3.Node) error
 }
 
 func NewTransformer() *Transformer {
 	return &Transformer{
-		transformations: []func(*envoy_config_bootstrap.Bootstrap) error{TransformConfigTemplates},
+		transformations: []func(node *envoy_config_core_v3.Node) error{TransformConfigTemplates},
 	}
 }
 
@@ -50,33 +51,67 @@ func (t *Transformer) Transform(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	jsonreader := bytes.NewReader(jsondata)
+	// jsonreader := bytes.NewReader(jsondata)
 
+	var genericBootstrap map[string]interface{}
+	err = json.Unmarshal(jsondata, &genericBootstrap)
 	var bootstrapConfig envoy_config_bootstrap.Bootstrap
-	var unmarshaler jsonpb.Unmarshaler
-	err = unmarshaler.Unmarshal(jsonreader, &bootstrapConfig)
+	err = jsonpb.UnmarshalString(string(jsondata), &bootstrapConfig)
+	if err != nil {
+		return err
+	}
 
+	node, ok := genericBootstrap["node"]
+	if !ok {
+		return errors.New("Could not find envoy node in input object")
+	}
+
+	remarshaled, err := json.Marshal(node)
+	if err != nil {
+		return err
+	}
+
+	var realNode envoy_config_core_v3.Node
+	err = jsonpb.UnmarshalString(string(remarshaled), &realNode)
 	if err != nil {
 		return err
 	}
 
 	for _, transformation := range t.transformations {
-		err := transformation(&bootstrapConfig)
+		err := transformation(&realNode)
 		if err != nil {
 			return err
 		}
 	}
-	var marshaller jsonpb.Marshaler
 
-	return marshaller.Marshal(out, &bootstrapConfig)
+	byt, err := json.Marshal(realNode)
+	if err != nil {
+		return nil
+	}
+
+	var remarshalledNode map[string]interface{}
+	if err := json.Unmarshal(byt, &remarshalledNode); err != nil {
+		return err
+	}
+
+	genericBootstrap["node"] = remarshalledNode
+
+	jsn, err := json.Marshal(genericBootstrap)
+	if err != nil {
+		return err
+	}
+	_, err = out.Write(jsn)
+	return err
+	// var marshaller jsonpb.Marshaler
+	// return marshaller.Marshal(out, &bootstrapConfig)
 }
 
-func TransformConfigTemplates(bootstrapConfig *envoy_config_bootstrap.Bootstrap) error {
+func TransformConfigTemplates(node *envoy_config_core_v3.Node) error {
 	api := RetrieveDownwardAPI()
-	return TransformConfigTemplatesWithApi(bootstrapConfig, api)
+	return TransformConfigTemplatesWithApi(node, api)
 }
 
-func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_bootstrap.Bootstrap, api DownwardAPI) error {
+func TransformConfigTemplatesWithApi(node *envoy_config_core_v3.Node, api DownwardAPI) error {
 
 	interpolator := NewInterpolator()
 
@@ -84,17 +119,17 @@ func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_bootstrap.Boo
 
 	interpolate := func(s *string) error { return interpolator.InterpolateString(s, api) }
 	// interpolate the ID templates:
-	err = interpolate(&bootstrapConfig.Node.Cluster)
+	err = interpolate(&node.Cluster)
 	if err != nil {
 		return err
 	}
 
-	err = interpolate(&bootstrapConfig.Node.Id)
+	err = interpolate(&node.Id)
 	if err != nil {
 		return err
 	}
 
-	transformStruct(interpolate, bootstrapConfig.Node.Metadata)
+	transformStruct(interpolate, node.Metadata)
 
 	return nil
 }

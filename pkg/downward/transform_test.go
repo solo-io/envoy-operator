@@ -64,14 +64,14 @@ var _ = Describe("Transform", func() {
 		It("should transform node id", func() {
 
 			bootstrapConfig.Node.Id = "{{.PodName}}"
-			err := TransformConfigTemplatesWithApi(bootstrapConfig, api)
+			err := TransformConfigTemplatesWithApi(bootstrapConfig.Node, api)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(bootstrapConfig.Node.Id).To(Equal("Test"))
 		})
 
 		It("should transform cluster", func() {
 			bootstrapConfig.Node.Cluster = "{{.PodName}}"
-			err := TransformConfigTemplatesWithApi(bootstrapConfig, api)
+			err := TransformConfigTemplatesWithApi(bootstrapConfig.Node, api)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(bootstrapConfig.Node.Cluster).To(Equal("Test"))
 		})
@@ -87,7 +87,7 @@ var _ = Describe("Transform", func() {
 				},
 			}
 
-			err := TransformConfigTemplatesWithApi(bootstrapConfig, api)
+			err := TransformConfigTemplatesWithApi(bootstrapConfig.Node, api)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(bootstrapConfig.Node.Metadata.Fields["foo"].Kind.(*structpb.Value_StringValue).StringValue).To(Equal("Test"))
 		})

@@ -11,7 +11,7 @@ import (
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	"github.com/golang/protobuf/jsonpb"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	// register all top level types used in the bootstrap config
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
@@ -94,17 +94,34 @@ func TransformConfigTemplatesWithApi(bootstrapConfig *envoy_config_bootstrap.Boo
 		return err
 	}
 
-	transformStruct(interpolate, bootstrapConfig.Node.Metadata)
+	err = transformStruct(interpolate, bootstrapConfig.Node.Metadata)
+	if err != nil {
+		return err
+	}
 
+	// Interpolate Static Resources
+	for _, cluster := range bootstrapConfig.GetStaticResources().GetClusters() {
+		for _, endpoint := range cluster.GetLoadAssignment().GetEndpoints() {
+			for _, lbEndpoint := range endpoint.GetLbEndpoints() {
+				socketAddress := lbEndpoint.GetEndpoint().GetAddress().GetSocketAddress()
+				if socketAddress != nil {
+					if err = interpolate(&socketAddress.Address); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
 	return nil
 }
+
 func transformValue(interpolate func(*string) error, v *structpb.Value) error {
 	switch v := v.Kind.(type) {
-	case (*structpb.Value_StringValue):
+	case *structpb.Value_StringValue:
 		return interpolate(&v.StringValue)
-	case (*structpb.Value_StructValue):
+	case *structpb.Value_StructValue:
 		return transformStruct(interpolate, v.StructValue)
-	case (*structpb.Value_ListValue):
+	case *structpb.Value_ListValue:
 		for _, val := range v.ListValue.Values {
 			if err := transformValue(interpolate, val); err != nil {
 				return err
@@ -143,6 +160,7 @@ func getJson(in io.Reader) ([]byte, error) {
 		return b, nil
 	}
 }
+
 func convert(i interface{}) interface{} {
 	switch x := i.(type) {
 	case map[interface{}]interface{}:

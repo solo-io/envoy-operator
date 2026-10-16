@@ -3,22 +3,22 @@ on: pull_request
 jobs:
   codegen:
     name: codegen check
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - name: Cancel Previous Actions
-      uses: styfle/cancel-workflow-action@0.4.1
+      uses: styfle/cancel-workflow-action@43da6c68d1f8edfdd25e3a96440e733723d533f6 # 0.4.1
       with:
         access_token: ${{ github.token }}
     - name: Set up Go 1.14
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
       with:
         go-version: 1.14
       id: go
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
       with:
         fetch-depth: 0
-    - uses: actions/cache@v1
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
